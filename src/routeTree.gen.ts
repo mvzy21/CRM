@@ -11,8 +11,13 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
+import { Route as DemoDbChatRouteImport } from './routes/demo/db-chat'
+import { Route as DemoDbChatApiRouteImport } from './routes/demo/db-chat-api'
+import { Route as DemoDrizzleRouteImport } from './routes/demo/drizzle'
 import { Route as DemoPosthogRouteImport } from './routes/demo/posthog'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
+import { Route as DemoTableRouteImport } from './routes/demo/table'
+import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoFormAddressRouteImport } from './routes/demo/form.address'
 import { Route as DemoFormSimpleRouteImport } from './routes/demo/form.simple'
 
@@ -26,6 +31,21 @@ const AboutRoute = AboutRouteImport.update({
   path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DemoDbChatRoute = DemoDbChatRouteImport.update({
+  id: '/demo/db-chat',
+  path: '/demo/db-chat',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoDbChatApiRoute = DemoDbChatApiRouteImport.update({
+  id: '/demo/db-chat-api',
+  path: '/demo/db-chat-api',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoDrizzleRoute = DemoDrizzleRouteImport.update({
+  id: '/demo/drizzle',
+  path: '/demo/drizzle',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const DemoPosthogRoute = DemoPosthogRouteImport.update({
   id: '/demo/posthog',
   path: '/demo/posthog',
@@ -34,6 +54,16 @@ const DemoPosthogRoute = DemoPosthogRouteImport.update({
 const DemoStoreRoute = DemoStoreRouteImport.update({
   id: '/demo/store',
   path: '/demo/store',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoTableRoute = DemoTableRouteImport.update({
+  id: '/demo/table',
+  path: '/demo/table',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DemoTanstackQueryRoute = DemoTanstackQueryRouteImport.update({
+  id: '/demo/tanstack-query',
+  path: '/demo/tanstack-query',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoFormAddressRoute = DemoFormAddressRouteImport.update({
@@ -50,16 +80,26 @@ const DemoFormSimpleRoute = DemoFormSimpleRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/demo/db-chat': typeof DemoDbChatRoute
+  '/demo/db-chat-api': typeof DemoDbChatApiRoute
+  '/demo/drizzle': typeof DemoDrizzleRoute
   '/demo/posthog': typeof DemoPosthogRoute
   '/demo/store': typeof DemoStoreRoute
+  '/demo/table': typeof DemoTableRoute
+  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/demo/db-chat': typeof DemoDbChatRoute
+  '/demo/db-chat-api': typeof DemoDbChatApiRoute
+  '/demo/drizzle': typeof DemoDrizzleRoute
   '/demo/posthog': typeof DemoPosthogRoute
   '/demo/store': typeof DemoStoreRoute
+  '/demo/table': typeof DemoTableRoute
+  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
@@ -67,8 +107,13 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
+  '/demo/db-chat': typeof DemoDbChatRoute
+  '/demo/db-chat-api': typeof DemoDbChatApiRoute
+  '/demo/drizzle': typeof DemoDrizzleRoute
   '/demo/posthog': typeof DemoPosthogRoute
   '/demo/store': typeof DemoStoreRoute
+  '/demo/table': typeof DemoTableRoute
+  '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/demo/form/address': typeof DemoFormAddressRoute
   '/demo/form/simple': typeof DemoFormSimpleRoute
 }
@@ -77,24 +122,39 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/about'
+    | '/demo/db-chat'
+    | '/demo/db-chat-api'
+    | '/demo/drizzle'
     | '/demo/posthog'
     | '/demo/store'
+    | '/demo/table'
+    | '/demo/tanstack-query'
     | '/demo/form/address'
     | '/demo/form/simple'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
     | '/about'
+    | '/demo/db-chat'
+    | '/demo/db-chat-api'
+    | '/demo/drizzle'
     | '/demo/posthog'
     | '/demo/store'
+    | '/demo/table'
+    | '/demo/tanstack-query'
     | '/demo/form/address'
     | '/demo/form/simple'
   id:
     | '__root__'
     | '/'
     | '/about'
+    | '/demo/db-chat'
+    | '/demo/db-chat-api'
+    | '/demo/drizzle'
     | '/demo/posthog'
     | '/demo/store'
+    | '/demo/table'
+    | '/demo/tanstack-query'
     | '/demo/form/address'
     | '/demo/form/simple'
   fileRoutesById: FileRoutesById
@@ -102,8 +162,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
+  DemoDbChatRoute: typeof DemoDbChatRoute
+  DemoDbChatApiRoute: typeof DemoDbChatApiRoute
+  DemoDrizzleRoute: typeof DemoDrizzleRoute
   DemoPosthogRoute: typeof DemoPosthogRoute
   DemoStoreRoute: typeof DemoStoreRoute
+  DemoTableRoute: typeof DemoTableRoute
+  DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   DemoFormAddressRoute: typeof DemoFormAddressRoute
   DemoFormSimpleRoute: typeof DemoFormSimpleRoute
 }
@@ -124,6 +189,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/demo/db-chat': {
+      id: '/demo/db-chat'
+      path: '/demo/db-chat'
+      fullPath: '/demo/db-chat'
+      preLoaderRoute: typeof DemoDbChatRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/db-chat-api': {
+      id: '/demo/db-chat-api'
+      path: '/demo/db-chat-api'
+      fullPath: '/demo/db-chat-api'
+      preLoaderRoute: typeof DemoDbChatApiRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/drizzle': {
+      id: '/demo/drizzle'
+      path: '/demo/drizzle'
+      fullPath: '/demo/drizzle'
+      preLoaderRoute: typeof DemoDrizzleRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/demo/posthog': {
       id: '/demo/posthog'
       path: '/demo/posthog'
@@ -136,6 +222,20 @@ declare module '@tanstack/react-router' {
       path: '/demo/store'
       fullPath: '/demo/store'
       preLoaderRoute: typeof DemoStoreRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/table': {
+      id: '/demo/table'
+      path: '/demo/table'
+      fullPath: '/demo/table'
+      preLoaderRoute: typeof DemoTableRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/demo/tanstack-query': {
+      id: '/demo/tanstack-query'
+      path: '/demo/tanstack-query'
+      fullPath: '/demo/tanstack-query'
+      preLoaderRoute: typeof DemoTanstackQueryRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/form/address': {
@@ -158,11 +258,25 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
+  DemoDbChatRoute: DemoDbChatRoute,
+  DemoDbChatApiRoute: DemoDbChatApiRoute,
+  DemoDrizzleRoute: DemoDrizzleRoute,
   DemoPosthogRoute: DemoPosthogRoute,
   DemoStoreRoute: DemoStoreRoute,
+  DemoTableRoute: DemoTableRoute,
+  DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   DemoFormAddressRoute: DemoFormAddressRoute,
   DemoFormSimpleRoute: DemoFormSimpleRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
+
+import type { getRouter } from './router.tsx'
+import type { createStart } from '@tanstack/react-start'
+declare module '@tanstack/react-start' {
+  interface Register {
+    ssr: true
+    router: Awaited<ReturnType<typeof getRouter>>
+  }
+}

@@ -1,12 +1,16 @@
 {
-  "projectName": "website",
+  "projectName": "project-altrium",
   "mode": "file-router",
   "typescript": true,
   "packageManager": "bun",
   "includeExamples": true,
   "tailwind": true,
   "projectPreset": "default",
-  "addOnOptions": {},
+  "addOnOptions": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
   "git": false,
   "install": true,
   "intent": true,
@@ -16,11 +20,15 @@
   "chosenAddOns": [
     "biome",
     "cloudflare",
-    "posthog",
-    "store",
-    "t3env",
-    "shadcn",
+    "compiler",
+    "db",
     "form",
-    "compiler"
+    "shadcn",
+    "t3env",
+    "table",
+    "store",
+    "posthog",
+    "tanstack-query",
+    "drizzle"
   ]
 }

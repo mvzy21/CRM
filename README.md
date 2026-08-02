@@ -55,15 +55,13 @@ For production env vars, run `wrangler secret put MY_VAR` for each secret listed
 KV, D1, R2, and Durable Object bindings are configured in `wrangler.jsonc` — see https://developers.cloudflare.com/workers/wrangler/configuration/.
 
 
-## Setting up PostHog
+## Shadcn
 
-1. Create a PostHog account at [posthog.com](https://posthog.com)
-2. Get your Project API Key from [Project Settings](https://app.posthog.com/project/settings)
-3. Set `VITE_POSTHOG_KEY` in your `.env.local`
+Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
 
-### Optional Configuration
-
-- `VITE_POSTHOG_HOST` - Set this if you're using PostHog Cloud EU (`https://eu.i.posthog.com`) or self-hosting
+```bash
+pnpm dlx shadcn@latest add button
+```
 
 
 ## T3Env
@@ -84,13 +82,15 @@ console.log(env.VITE_APP_TITLE);
 
 
 
-## Shadcn
+## Setting up PostHog
 
-Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
+1. Create a PostHog account at [posthog.com](https://posthog.com)
+2. Get your Project API Key from [Project Settings](https://app.posthog.com/project/settings)
+3. Set `VITE_POSTHOG_KEY` in your `.env.local`
 
-```bash
-pnpm dlx shadcn@latest add button
-```
+### Optional Configuration
+
+- `VITE_POSTHOG_HOST` - Set this if you're using PostHog Cloud EU (`https://eu.i.posthog.com`) or self-hosting
 
 
 
