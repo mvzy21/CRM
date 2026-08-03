@@ -1,0 +1,33 @@
+{
+  "projectName": "project-altrium",
+  "mode": "file-router",
+  "typescript": true,
+  "packageManager": "npm",
+  "includeExamples": true,
+  "tailwind": true,
+  "projectPreset": "default",
+  "addOnOptions": {
+    "drizzle": {
+      "database": "postgresql"
+    }
+  },
+  "git": false,
+  "install": true,
+  "intent": true,
+  "routerOnly": false,
+  "version": 1,
+  "framework": "react",
+  "chosenAddOns": [
+    "biome",
+    "cloudflare",
+    "drizzle",
+    "form",
+    "db",
+    "compiler",
+    "shadcn",
+    "table",
+    "store",
+    "posthog",
+    "tanstack-query"
+  ]
+}
