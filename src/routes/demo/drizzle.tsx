@@ -104,13 +104,13 @@ function DemoDrizzle() {
                 Configure your <code>DATABASE_URL</code> in .env.local
               </li>
               <li>
-                Run: <code>bunx --bun drizzle-kit generate</code>
+                Run: <code>npx -y drizzle-kit generate</code>
               </li>
               <li>
-                Run: <code>bunx --bun drizzle-kit migrate</code>
+                Run: <code>npx -y drizzle-kit migrate</code>
               </li>
               <li>
-                Optional: <code>bunx --bun drizzle-kit studio</code>
+                Optional: <code>npx -y drizzle-kit studio</code>
               </li>
             </ol>
           </div>

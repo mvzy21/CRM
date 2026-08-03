@@ -44,10 +44,10 @@ export default function Header() {
             </summary>
             <div className="mt-2 min-w-56 rounded-xl border border-[var(--line)] bg-[var(--header-bg)] p-2 shadow-lg sm:absolute sm:right-0">
               <a
-                href="/demo/db-chat"
+                href="/demo/drizzle"
                 className="block rounded-lg px-3 py-2 text-sm text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
               >
-                DB Chat
+                Drizzle
               </a>
               <a
                 href="/demo/form/simple"
@@ -60,6 +60,12 @@ export default function Header() {
                 className="block rounded-lg px-3 py-2 text-sm text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
               >
                 Address Form
+              </a>
+              <a
+                href="/demo/db-chat"
+                className="block rounded-lg px-3 py-2 text-sm text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
+              >
+                DB Chat
               </a>
               <a
                 href="/demo/table"
@@ -84,12 +90,6 @@ export default function Header() {
                 className="block rounded-lg px-3 py-2 text-sm text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
               >
                 TanStack Query
-              </a>
-              <a
-                href="/demo/drizzle"
-                className="block rounded-lg px-3 py-2 text-sm text-[var(--sea-ink-soft)] no-underline transition hover:bg-[var(--link-bg-hover)] hover:text-[var(--sea-ink)]"
-              >
-                Drizzle
               </a>
             </div>
           </details>

@@ -2,7 +2,7 @@
   "projectName": "project-altrium",
   "mode": "file-router",
   "typescript": true,
-  "packageManager": "bun",
+  "packageManager": "npm",
   "includeExamples": true,
   "tailwind": true,
   "projectPreset": "default",
@@ -20,15 +20,14 @@
   "chosenAddOns": [
     "biome",
     "cloudflare",
-    "compiler",
-    "db",
+    "drizzle",
     "form",
+    "db",
+    "compiler",
     "shadcn",
-    "t3env",
     "table",
     "store",
     "posthog",
-    "tanstack-query",
-    "drizzle"
+    "tanstack-query"
   ]
 }
