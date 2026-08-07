@@ -20,8 +20,8 @@ export function WorkspaceShell({ workspaceId }: WorkspaceShellProps) {
 		<div className="min-h-screen bg-[var(--background)]">
 			<header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
 				<div className="flex items-center gap-3 py-3">
-					<span className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)]">
-						<span className="h-2 w-2 rounded-full bg-[#fbb401]" />
+					<span className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)]">
+						<span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
 						Altrium
 					</span>
 					<span className="rounded-md bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">

@@ -13,21 +13,21 @@ export function AuthView({ redirect }: AuthViewProps) {
 				initial={{ opacity: 0, y: 16 }}
 				animate={{ opacity: 1, y: 0 }}
 				transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
-				className="island-shell w-full max-w-sm rounded-2xl p-8"
+				className="panel w-full max-w-sm rounded-2xl p-8"
 			>
 				<Link
 					to="/"
-					className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--sea-ink)] no-underline"
+					className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--ink)] no-underline"
 				>
-					<span className="h-2 w-2 rounded-full bg-[#fbb401]" />
+					<span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
 					Altrium
 				</Link>
 
-				<p className="island-kicker mb-2">Sign in</p>
-				<h1 className="display-title mb-2 text-2xl font-bold text-[var(--sea-ink)]">
+				<p className="eyebrow mb-2">Sign in</p>
+				<h1 className="display-title mb-2 text-2xl font-bold text-[var(--ink)]">
 					Welcome back
 				</h1>
-				<p className="mb-6 text-sm leading-6 text-[var(--sea-ink-soft)]">
+				<p className="mb-6 text-sm leading-6 text-[var(--ink-soft)]">
 					Enter your email and password to sign in
 					{redirect ? " and get back to your workspace" : ""}.
 				</p>

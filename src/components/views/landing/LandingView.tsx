@@ -1,3 +1,4 @@
+import { CtaBand } from "./CtaBand";
 import { FeatureGrid } from "./FeatureGrid";
 import { Footer } from "./Footer";
 import { Hero } from "./Hero";
@@ -10,6 +11,7 @@ export function LandingView() {
 			<main>
 				<Hero />
 				<FeatureGrid />
+				<CtaBand />
 			</main>
 			<Footer />
 		</div>

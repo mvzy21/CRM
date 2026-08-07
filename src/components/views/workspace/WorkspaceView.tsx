@@ -7,10 +7,10 @@ const placeholders = [
 export function WorkspaceView() {
 	return (
 		<div>
-			<h1 className="display-title text-2xl font-bold text-[var(--sea-ink)] sm:text-3xl">
+			<h1 className="display-title text-2xl font-bold text-[var(--ink)] sm:text-3xl">
 				Welcome to your workspace
 			</h1>
-			<p className="mt-2 max-w-xl text-sm leading-6 text-[var(--sea-ink-soft)]">
+			<p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
 				This is a placeholder dashboard &mdash; the real pipeline, contacts, and
 				activity views land in a later pass.
 			</p>
@@ -21,12 +21,10 @@ export function WorkspaceView() {
 						key={card.title}
 						className="feature-card rounded-2xl border border-[var(--line)] p-6"
 					>
-						<h2 className="mb-1 text-sm font-semibold text-[var(--sea-ink)]">
+						<h2 className="mb-1 text-sm font-semibold text-[var(--ink)]">
 							{card.title}
 						</h2>
-						<p className="text-sm text-[var(--sea-ink-soft)]">
-							{card.description}
-						</p>
+						<p className="text-sm text-[var(--ink-soft)]">{card.description}</p>
 					</div>
 				))}
 			</div>

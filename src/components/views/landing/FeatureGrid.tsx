@@ -32,13 +32,13 @@ export function FeatureGrid() {
 	return (
 		<section id="features" className="page-wrap px-4 py-16 sm:py-20">
 			<div className="mb-10 max-w-xl">
-				<p className="island-kicker mb-3">Features</p>
-				<h2 className="display-title text-3xl font-bold text-[var(--sea-ink)] sm:text-4xl">
+				<p className="eyebrow mb-3">Features</p>
+				<h2 className="display-title text-3xl font-bold text-[var(--ink)] sm:text-4xl">
 					Everything your team needs, nothing it doesn't.
 				</h2>
 			</div>
 
-			<div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+			<div id="pipeline" className="grid grid-cols-1 gap-4 sm:grid-cols-2">
 				{features.map((feature, index) => (
 					<motion.div
 						key={feature.title}
@@ -52,13 +52,13 @@ export function FeatureGrid() {
 						}}
 						className="feature-card rounded-2xl border border-[var(--line)] p-6"
 					>
-						<div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[#fbb401]/15 text-[#a67200]">
+						<div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[var(--brand-soft)] text-[var(--kicker)]">
 							<feature.icon className="h-5 w-5" aria-hidden="true" />
 						</div>
-						<h3 className="mb-2 text-lg font-semibold text-[var(--sea-ink)]">
+						<h3 className="mb-2 text-lg font-semibold text-[var(--ink)]">
 							{feature.title}
 						</h3>
-						<p className="text-sm leading-6 text-[var(--sea-ink-soft)]">
+						<p className="text-sm leading-6 text-[var(--ink-soft)]">
 							{feature.description}
 						</p>
 					</motion.div>
