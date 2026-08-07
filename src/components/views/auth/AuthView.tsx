@@ -1,6 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
 import { MagicLinkForm } from "./MagicLinkForm";
+import { PasswordTestSignIn } from "./PasswordTestSignIn";
 
 interface AuthViewProps {
 	redirect?: string;
@@ -33,6 +34,7 @@ export function AuthView({ redirect }: AuthViewProps) {
 				</p>
 
 				<MagicLinkForm />
+				<PasswordTestSignIn redirect={redirect} />
 			</motion.div>
 		</main>
 	);
