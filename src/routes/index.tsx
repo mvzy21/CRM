@@ -1,11 +1,4 @@
-import { createFileRoute } from '@tanstack/react-router'
+import { createFileRoute } from "@tanstack/react-router";
+import { LandingView } from "#/components/views/landing/LandingView.tsx";
 
-export const Route = createFileRoute('/')({ component: App })
-
-function App() {
-  return (
-    <main className="h-screen w-full bg-gray-800">
-    
-    </main>
-  )
-}
+export const Route = createFileRoute("/")({ component: LandingView });
