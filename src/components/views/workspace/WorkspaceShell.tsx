@@ -2,7 +2,7 @@ import { Outlet, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
-import { supabase } from "#/lib/supabase.ts";
+import { signOut } from "#/lib/supabase/auth.ts";
 
 interface WorkspaceShellProps {
 	workspaceId: string;
@@ -12,7 +12,7 @@ export function WorkspaceShell({ workspaceId }: WorkspaceShellProps) {
 	const navigate = useNavigate();
 
 	async function handleSignOut() {
-		await supabase.auth.signOut();
+		await signOut();
 		navigate({ to: "/auth" });
 	}
 

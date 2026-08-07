@@ -1,15 +1,12 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { WorkspaceShell } from "#/components/views/workspace/WorkspaceShell.tsx";
-import { supabase } from "#/lib/supabase.ts";
+import { getServerUser } from "#/lib/supabase/auth.ts";
 
 export const Route = createFileRoute("/workspace/$workspaceId")({
-	ssr: false,
 	beforeLoad: async ({ location }) => {
-		const {
-			data: { session },
-		} = await supabase.auth.getSession();
+		const user = await getServerUser();
 
-		if (!session) {
+		if (!user) {
 			throw redirect({ to: "/auth", search: { redirect: location.href } });
 		}
 	},

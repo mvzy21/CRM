@@ -1,7 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { motion } from "motion/react";
-import { MagicLinkForm } from "./MagicLinkForm";
-import { PasswordTestSignIn } from "./PasswordTestSignIn";
+import { SignInForm } from "./SignInForm";
 
 interface AuthViewProps {
 	redirect?: string;
@@ -29,12 +28,11 @@ export function AuthView({ redirect }: AuthViewProps) {
 					Welcome back
 				</h1>
 				<p className="mb-6 text-sm leading-6 text-[var(--sea-ink-soft)]">
-					Enter your email and we'll send you a link to sign in
-					{redirect ? " and take you back to your workspace" : ""}.
+					Enter your email and password to sign in
+					{redirect ? " and get back to your workspace" : ""}.
 				</p>
 
-				<MagicLinkForm />
-				<PasswordTestSignIn redirect={redirect} />
+				<SignInForm redirect={redirect} />
 			</motion.div>
 		</main>
 	);
