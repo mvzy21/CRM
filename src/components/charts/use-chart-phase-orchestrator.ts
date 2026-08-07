@@ -29,10 +29,10 @@ export function useChartPhaseOrchestrator({
   skipEnterReveal = false,
 }: UseChartPhaseOrchestratorOptions) {
   const [chartPhase, setChartPhase] = useState<ChartPhase>(() =>
-    resolveRestingChartPhase(chartStatus)
+    resolveRestingChartPhase(chartStatus),
   );
   const [plotData, setPlotData] = useState<Record<string, unknown>[]>(() =>
-    chartStatus === "loading" ? skeletonData : targetData
+    chartStatus === "loading" ? skeletonData : targetData,
   );
   const [revealEpoch, setRevealEpoch] = useState(0);
   const [concealEpoch, setConcealEpoch] = useState(0);
@@ -41,7 +41,6 @@ export function useChartPhaseOrchestrator({
   const phaseRef = useRef(chartPhase);
   phaseRef.current = chartPhase;
 
-  // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: status transition branches for animation durations
   useEffect(() => {
     const prevStatus = prevStatusRef.current;
     if (prevStatus === chartStatus) {

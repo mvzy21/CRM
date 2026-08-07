@@ -3,37 +3,37 @@ import { motion } from "motion/react";
 import { SignInForm } from "./SignInForm";
 
 interface AuthViewProps {
-	redirect?: string;
+  redirect?: string;
 }
 
 export function AuthView({ redirect }: AuthViewProps) {
-	return (
-		<main className="flex min-h-screen items-center justify-center px-4 py-16">
-			<motion.div
-				initial={{ opacity: 0, y: 16 }}
-				animate={{ opacity: 1, y: 0 }}
-				transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
-				className="panel w-full max-w-sm rounded-2xl p-8"
-			>
-				<Link
-					to="/"
-					className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--ink)] no-underline"
-				>
-					<span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
-					Altrium
-				</Link>
+  return (
+    <main className="flex min-h-screen items-center justify-center px-4 py-16">
+      <motion.div
+        initial={{ opacity: 0, y: 16 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }}
+        className="panel w-full max-w-sm rounded-2xl p-8"
+      >
+        <Link
+          to="/"
+          className="mb-6 inline-flex items-center gap-2 text-sm font-semibold text-[var(--ink)] no-underline"
+        >
+          <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+          Altrium
+        </Link>
 
-				<p className="eyebrow mb-2">Sign in</p>
-				<h1 className="display-title mb-2 text-2xl font-bold text-[var(--ink)]">
-					Welcome back
-				</h1>
-				<p className="mb-6 text-sm leading-6 text-[var(--ink-soft)]">
-					Enter your email and password to sign in
-					{redirect ? " and get back to your workspace" : ""}.
-				</p>
+        <p className="eyebrow mb-2">Sign in</p>
+        <h1 className="display-title mb-2 text-2xl font-bold text-[var(--ink)]">
+          Welcome back
+        </h1>
+        <p className="mb-6 text-sm leading-6 text-[var(--ink-soft)]">
+          Enter your email and password to sign in
+          {redirect ? " and get back to your workspace" : ""}.
+        </p>
 
-				<SignInForm redirect={redirect} />
-			</motion.div>
-		</main>
-	);
+        <SignInForm redirect={redirect} />
+      </motion.div>
+    </main>
+  );
 }

@@ -3,17 +3,17 @@ import { WorkspaceShell } from "#/components/views/workspace/WorkspaceShell.tsx"
 import { getServerUser } from "#/lib/supabase/auth.ts";
 
 export const Route = createFileRoute("/workspace/$workspaceId")({
-	beforeLoad: async ({ location }) => {
-		const user = await getServerUser();
+  beforeLoad: async ({ location }) => {
+    const user = await getServerUser();
 
-		if (!user) {
-			throw redirect({ to: "/auth", search: { redirect: location.href } });
-		}
-	},
-	component: WorkspaceLayout,
+    if (!user) {
+      throw redirect({ to: "/auth", search: { redirect: location.href } });
+    }
+  },
+  component: WorkspaceLayout,
 });
 
 function WorkspaceLayout() {
-	const { workspaceId } = Route.useParams();
-	return <WorkspaceShell workspaceId={workspaceId} />;
+  const { workspaceId } = Route.useParams();
+  return <WorkspaceShell workspaceId={workspaceId} />;
 }
