@@ -1,4 +1,4 @@
-import { Outlet, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
@@ -6,9 +6,10 @@ import { signOut } from "#/lib/supabase/auth.ts";
 
 interface WorkspaceShellProps {
   workspaceId: string;
+  isAdmin: boolean;
 }
 
-export function WorkspaceShell({ workspaceId }: WorkspaceShellProps) {
+export function WorkspaceShell({ workspaceId, isAdmin }: WorkspaceShellProps) {
   const navigate = useNavigate();
 
   async function handleSignOut() {
@@ -27,6 +28,17 @@ export function WorkspaceShell({ workspaceId }: WorkspaceShellProps) {
           <span className="rounded-md bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">
             {workspaceId}
           </span>
+
+          {isAdmin ? (
+            <Link
+              to="/workspace/$workspaceId/team"
+              params={{ workspaceId }}
+              className="nav-link text-sm font-medium"
+              activeProps={{ className: "is-active" }}
+            >
+              Team
+            </Link>
+          ) : null}
 
           <div className="ml-auto flex items-center gap-2">
             <ThemeToggle />

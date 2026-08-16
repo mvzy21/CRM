@@ -37,6 +37,27 @@ export const signInWithPassword = createServerFn({ method: "POST" })
       };
     }
 
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_active")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && !profile.is_active) {
+        await supabase.auth.signOut();
+        return {
+          success: false as const,
+          message:
+            "This account has been deactivated. Contact your administrator.",
+        };
+      }
+    }
+
     return { success: true as const };
   });
 
@@ -53,5 +74,32 @@ export const getServerUser = createServerFn({ method: "GET" }).handler(
       data: { user },
     } = await supabase.auth.getUser();
     return user;
+  },
+);
+
+export const getServerProfile = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, display_name, team_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+      role: profile.role,
+      displayName: profile.display_name,
+      teamId: profile.team_id,
+    };
   },
 );
