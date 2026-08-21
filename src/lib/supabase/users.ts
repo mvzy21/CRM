@@ -176,6 +176,66 @@ export const inviteUser = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+const resendInviteSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export const resendInvite = createServerFn({ method: "POST" })
+  .validator(resendInviteSchema)
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireAdmin();
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: profile } = await check.supabase
+      .from("profiles")
+      .select("email")
+      .eq("id", data.userId)
+      .single();
+
+    if (!profile) return { success: false, message: "User not found." };
+
+    const admin = createAdminSupabaseClient();
+    const { error } = await admin.auth.admin.inviteUserByEmail(profile.email);
+
+    if (error) {
+      // Supabase rejects this once the user has already accepted an invite.
+      return {
+        success: false,
+        message: error.message.includes("already been registered")
+          ? "This user has already accepted their invite."
+          : "Failed to resend invite.",
+      };
+    }
+
+    return { success: true };
+  });
+
+const deleteUserSchema = z.object({
+  userId: z.string().uuid(),
+});
+
+export const deleteUser = createServerFn({ method: "POST" })
+  .validator(deleteUserSchema)
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireAdmin();
+    if (!check.ok) return { success: false, message: check.message };
+
+    if (data.userId === check.callerId) {
+      return {
+        success: false,
+        message: "You can't delete your own account.",
+      };
+    }
+
+    const admin = createAdminSupabaseClient();
+    // profiles.id -> auth.users(id) on delete cascade, so this removes the
+    // profile row too.
+    const { error } = await admin.auth.admin.deleteUser(data.userId);
+
+    if (error) return { success: false, message: "Failed to delete user." };
+    return { success: true };
+  });
+
 const updateUserSchema = z.object({
   userId: z.string().uuid(),
   role: appRoleSchema,

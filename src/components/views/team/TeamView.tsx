@@ -2,6 +2,14 @@ import { MoreVertical, Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "#/components/ui/dialog.tsx";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -16,9 +24,11 @@ import { PersonAvatar } from "#/components/ui/person-avatar.tsx";
 import { APP_ROLES, ROLE_LABELS } from "#/lib/supabase/roles.ts";
 import {
   createTeam,
+  deleteUser,
   listTeams,
   listUsers,
   type ManagedUser,
+  resendInvite,
   setUserActive,
   type Team,
   updateUser,
@@ -38,6 +48,8 @@ export function TeamView({ currentUserId }: TeamViewProps) {
   const [pendingUserId, setPendingUserId] = useState<string | null>(null);
   const [newTeamName, setNewTeamName] = useState("");
   const [creatingTeam, setCreatingTeam] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<ManagedUser | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   async function refresh() {
     const [usersResult, teamsResult] = await Promise.all([
@@ -93,6 +105,27 @@ export function TeamView({ currentUserId }: TeamViewProps) {
     setPendingUserId(null);
     if (result.success) refresh();
     else setError(result.message);
+  }
+
+  async function handleResendInvite(user: ManagedUser) {
+    setPendingUserId(user.id);
+    const result = await resendInvite({ data: { userId: user.id } });
+    setPendingUserId(null);
+    if (!result.success) setError(result.message);
+  }
+
+  async function handleDeleteConfirmed() {
+    if (!deleteTarget) return;
+    setDeleting(true);
+    const result = await deleteUser({ data: { userId: deleteTarget.id } });
+    setDeleting(false);
+    if (result.success) {
+      setDeleteTarget(null);
+      refresh();
+    } else {
+      setError(result.message);
+      setDeleteTarget(null);
+    }
   }
 
   async function handleCreateTeam(event: React.FormEvent<HTMLFormElement>) {
@@ -311,11 +344,28 @@ export function TeamView({ currentUserId }: TeamViewProps) {
                         <DropdownMenuSeparator />
 
                         <DropdownMenuItem
+                          disabled={user.id === currentUserId}
+                          onSelect={() => handleResendInvite(user)}
+                        >
+                          Resend invite
+                        </DropdownMenuItem>
+
+                        <DropdownMenuItem
                           variant={user.isActive ? "destructive" : "default"}
                           disabled={user.id === currentUserId}
                           onSelect={() => handleToggleActive(user)}
                         >
                           {user.isActive ? "Deactivate" : "Reactivate"}
+                        </DropdownMenuItem>
+
+                        <DropdownMenuSeparator />
+
+                        <DropdownMenuItem
+                          variant="destructive"
+                          disabled={user.id === currentUserId}
+                          onSelect={() => setDeleteTarget(user)}
+                        >
+                          Delete user
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -333,6 +383,42 @@ export function TeamView({ currentUserId }: TeamViewProps) {
         teams={teams}
         onInvited={refresh}
       />
+
+      <Dialog
+        open={deleteTarget !== null}
+        onOpenChange={(next) => {
+          if (!next) setDeleteTarget(null);
+        }}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete user</DialogTitle>
+            <DialogDescription>
+              This permanently deletes{" "}
+              <strong>{deleteTarget?.displayName ?? deleteTarget?.email}</strong>
+              's account and access. This can't be undone.
+            </DialogDescription>
+          </DialogHeader>
+
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setDeleteTarget(null)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              variant="destructive"
+              disabled={deleting}
+              onClick={handleDeleteConfirmed}
+            >
+              {deleting ? "Deleting..." : "Delete user"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

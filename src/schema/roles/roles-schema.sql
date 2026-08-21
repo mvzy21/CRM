@@ -2,7 +2,8 @@ create type public.app_role as enum (
     'admin',
     'sales_manager',
     'sales_rep',
-    'marketing',
+    'tech_lead',
+    'finance_lead',
     'leadership'
 );
 

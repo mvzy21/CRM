@@ -4,7 +4,8 @@ export const APP_ROLES = [
   "admin",
   "sales_manager",
   "sales_rep",
-  "marketing",
+  "tech_lead",
+  "finance_lead",
   "leadership",
 ] as const;
 
@@ -16,6 +17,7 @@ export const ROLE_LABELS: Record<AppRole, string> = {
   admin: "Admin",
   sales_manager: "Sales Manager",
   sales_rep: "Sales Rep",
-  marketing: "Marketing",
+  tech_lead: "Tech Lead",
+  finance_lead: "Finance Lead",
   leadership: "Leadership",
 };
