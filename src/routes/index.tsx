@@ -1,4 +1,9 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { LandingView } from "#/components/views/landing/LandingView.tsx";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { getServerUser } from "#/lib/supabase/auth.ts";
 
-export const Route = createFileRoute("/")({ component: LandingView });
+export const Route = createFileRoute("/")({
+  beforeLoad: async () => {
+    const user = await getServerUser();
+    throw redirect({ to: user ? "/workspace" : "/auth" });
+  },
+});
