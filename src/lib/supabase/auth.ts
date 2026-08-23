@@ -84,6 +84,30 @@ export const verifyInvite = createServerFn({ method: "POST" })
     return { success: true as const };
   });
 
+const establishSessionSchema = z.object({
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+});
+
+export const establishSessionFromTokens = createServerFn({ method: "POST" })
+  .validator(establishSessionSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.setSession({
+      access_token: data.accessToken,
+      refresh_token: data.refreshToken,
+    });
+
+    if (error) {
+      return {
+        success: false as const,
+        message: "This invite link is invalid or has expired.",
+      };
+    }
+
+    return { success: true as const };
+  });
+
 const setPasswordSchema = z.object({
   password: z
     .string()

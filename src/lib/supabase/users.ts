@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createAdminSupabaseClient } from "./admin.ts";
 import { type AppRole, appRoleSchema } from "./roles.ts";
@@ -54,6 +55,11 @@ async function requireAdmin() {
     callerId: user.id,
     orgId: caller.org_id,
   };
+}
+
+function inviteRedirectUrl() {
+  const request = getRequest();
+  return `${new URL(request.url).origin}/invite`;
 }
 
 export const listUsers = createServerFn({ method: "GET" }).handler(
@@ -148,7 +154,9 @@ export const inviteUser = createServerFn({ method: "POST" })
 
     const admin = createAdminSupabaseClient();
     const { data: invited, error: inviteError } =
-      await admin.auth.admin.inviteUserByEmail(data.email);
+      await admin.auth.admin.inviteUserByEmail(data.email, {
+        redirectTo: inviteRedirectUrl(),
+      });
 
     if (inviteError || !invited.user) {
       return {
@@ -195,7 +203,9 @@ export const resendInvite = createServerFn({ method: "POST" })
     if (!profile) return { success: false, message: "User not found." };
 
     const admin = createAdminSupabaseClient();
-    const { error } = await admin.auth.admin.inviteUserByEmail(profile.email);
+    const { error } = await admin.auth.admin.inviteUserByEmail(profile.email, {
+      redirectTo: inviteRedirectUrl(),
+    });
 
     if (error) {
       // Supabase rejects this once the user has already accepted an invite.
