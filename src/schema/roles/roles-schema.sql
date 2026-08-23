@@ -3,8 +3,7 @@ create type public.app_role as enum (
     'sales_manager',
     'sales_rep',
     'tech_lead',
-    'finance_lead',
-    'leadership'
+    'finance_lead'
 );
 
 -- security definer so policies on public.profiles can call this without
