@@ -1,46 +1,85 @@
-import { Outlet, useNavigate } from "@tanstack/react-router";
+import { Link, Outlet, useNavigate } from "@tanstack/react-router";
 import { LogOut } from "lucide-react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { signOut } from "#/lib/supabase/auth.ts";
 
 interface WorkspaceShellProps {
-	workspaceId: string;
+  workspaceId: string;
+  isAdmin: boolean;
 }
 
-export function WorkspaceShell({ workspaceId }: WorkspaceShellProps) {
-	const navigate = useNavigate();
+export function WorkspaceShell({ workspaceId, isAdmin }: WorkspaceShellProps) {
+  const navigate = useNavigate();
 
-	async function handleSignOut() {
-		await signOut();
-		navigate({ to: "/auth" });
-	}
+  async function handleSignOut() {
+    await signOut();
+    navigate({ to: "/auth" });
+  }
 
-	return (
-		<div className="min-h-screen bg-[var(--background)]">
-			<header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
-				<div className="flex items-center gap-3 py-3">
-					<span className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--sea-ink)]">
-						<span className="h-2 w-2 rounded-full bg-[#fbb401]" />
-						Altrium
-					</span>
-					<span className="rounded-md bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">
-						{workspaceId}
-					</span>
+  return (
+    <div className="min-h-screen bg-[var(--background)]">
+      <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
+        <div className="flex items-center gap-3 py-3">
+          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)]">
+            <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
+            Altrium
+          </span>
+          <span className="rounded-md bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">
+            {workspaceId}
+          </span>
 
-					<div className="ml-auto flex items-center gap-2">
-						<ThemeToggle />
-						<Button size="sm" variant="ghost" onClick={handleSignOut}>
-							<LogOut className="h-4 w-4" />
-							Sign out
-						</Button>
-					</div>
-				</div>
-			</header>
+          <Link
+            to="/workspace/$workspaceId/companies"
+            params={{ workspaceId }}
+            className="nav-link text-sm font-medium"
+            activeProps={{ className: "is-active" }}
+          >
+            Companies
+          </Link>
 
-			<main className="page-wrap px-4 py-10">
-				<Outlet />
-			</main>
-		</div>
-	);
+          <Link
+            to="/workspace/$workspaceId/contacts"
+            params={{ workspaceId }}
+            className="nav-link text-sm font-medium"
+            activeProps={{ className: "is-active" }}
+          >
+            Contacts
+          </Link>
+
+          <Link
+            to="/workspace/$workspaceId/leads"
+            params={{ workspaceId }}
+            className="nav-link text-sm font-medium"
+            activeProps={{ className: "is-active" }}
+          >
+            Leads
+          </Link>
+
+          {isAdmin ? (
+            <Link
+              to="/workspace/$workspaceId/team"
+              params={{ workspaceId }}
+              className="nav-link text-sm font-medium"
+              activeProps={{ className: "is-active" }}
+            >
+              Team
+            </Link>
+          ) : null}
+
+          <div className="ml-auto flex items-center gap-2">
+            <ThemeToggle />
+            <Button size="sm" variant="ghost" onClick={handleSignOut}>
+              <LogOut className="h-4 w-4" />
+              Sign out
+            </Button>
+          </div>
+        </div>
+      </header>
+
+      <main className="page-wrap px-4 py-10">
+        <Outlet />
+      </main>
+    </div>
+  );
 }

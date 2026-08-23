@@ -10,9 +10,9 @@ import { securityHeadersMiddleware } from "#/lib/security/headers-middleware.ts"
  * external links to the site still work.
  */
 const csrfMiddleware = createCsrfMiddleware({
-	filter: (ctx) => ctx.handlerType === "serverFn",
+  filter: (ctx) => ctx.handlerType === "serverFn",
 });
 
 export const startInstance = createStart(() => ({
-	requestMiddleware: [csrfMiddleware, securityHeadersMiddleware],
+  requestMiddleware: [csrfMiddleware, securityHeadersMiddleware],
 }));

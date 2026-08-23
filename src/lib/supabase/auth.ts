@@ -3,47 +3,183 @@ import { z } from "zod";
 import { createServerSupabaseClient } from "./server.ts";
 
 export const signInSchema = z.object({
-	email: z.string().trim().toLowerCase().min(1, "Email is required").email("Enter a valid email address").max(254),
-	password: z
-		.string()
-		.min(8, "Password must be at least 8 characters")
-		.max(128, "Password is too long"),
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(1, "Email is required")
+    .email("Enter a valid email address")
+    .max(254),
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password is too long"),
 });
 
 export type SignInInput = z.infer<typeof signInSchema>;
 
 export const signInWithPassword = createServerFn({ method: "POST" })
-	.validator(signInSchema)
-	.handler(async ({ data }) => {
-		const supabase = createServerSupabaseClient();
-		const { error } = await supabase.auth.signInWithPassword({
-			email: data.email,
-			password: data.password,
-		});
+  .validator(signInSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
 
-		if (error) {
-			const rateLimited = error.status === 429;
-			return {
-				success: false as const,
-				message: rateLimited
-					? "Too many attempts. Please wait a moment and try again."
-					: "Invalid email or password.",
-			};
-		}
+    if (error) {
+      const rateLimited = error.status === 429;
+      return {
+        success: false as const,
+        message: rateLimited
+          ? "Too many attempts. Please wait a moment and try again."
+          : "Invalid email or password.",
+      };
+    }
 
-		return { success: true as const };
-	});
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (user) {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("is_active")
+        .eq("id", user.id)
+        .single();
+
+      if (profile && !profile.is_active) {
+        await supabase.auth.signOut();
+        return {
+          success: false as const,
+          message:
+            "This account has been deactivated. Contact your administrator.",
+        };
+      }
+    }
+
+    return { success: true as const };
+  });
+
+const verifyInviteSchema = z.object({
+  tokenHash: z.string().min(1),
+});
+
+export const verifyInvite = createServerFn({ method: "POST" })
+  .validator(verifyInviteSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: data.tokenHash,
+      type: "invite",
+    });
+
+    if (error) {
+      return {
+        success: false as const,
+        message: "This invite link is invalid or has expired.",
+      };
+    }
+
+    return { success: true as const };
+  });
+
+const establishSessionSchema = z.object({
+  accessToken: z.string().min(1),
+  refreshToken: z.string().min(1),
+});
+
+export const establishSessionFromTokens = createServerFn({ method: "POST" })
+  .validator(establishSessionSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.setSession({
+      access_token: data.accessToken,
+      refresh_token: data.refreshToken,
+    });
+
+    if (error) {
+      return {
+        success: false as const,
+        message: "This invite link is invalid or has expired.",
+      };
+    }
+
+    return { success: true as const };
+  });
+
+const setPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password is too long"),
+});
+
+export const setPassword = createServerFn({ method: "POST" })
+  .validator(setPasswordSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        success: false as const,
+        message: "Your session has expired. Please use your invite link again.",
+      };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
+    });
+
+    if (error) {
+      return { success: false as const, message: "Failed to set password." };
+    }
+
+    return { success: true as const };
+  });
 
 export const signOut = createServerFn({ method: "POST" }).handler(async () => {
-	const supabase = createServerSupabaseClient();
-	await supabase.auth.signOut();
-	return { success: true as const };
+  const supabase = createServerSupabaseClient();
+  await supabase.auth.signOut();
+  return { success: true as const };
 });
 
-export const getServerUser = createServerFn({ method: "GET" }).handler(async () => {
-	const supabase = createServerSupabaseClient();
-	const {
-		data: { user },
-	} = await supabase.auth.getUser();
-	return user;
-});
+export const getServerUser = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    return user;
+  },
+);
+
+export const getServerProfile = createServerFn({ method: "GET" }).handler(
+  async () => {
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) return null;
+
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("role, display_name, team_id")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile) return null;
+
+    return {
+      id: user.id,
+      email: user.email ?? null,
+      role: profile.role,
+      displayName: profile.display_name,
+      teamId: profile.team_id,
+    };
+  },
+);
