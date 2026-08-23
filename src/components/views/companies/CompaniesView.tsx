@@ -23,9 +23,11 @@ export function CompaniesView({
   const [companies, setCompanies] = useState<Company[] | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [newName, setNewName] = useState("");
+  const [newIndustry, setNewIndustry] = useState("");
   const [creating, setCreating] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingName, setEditingName] = useState("");
+  const [editingIndustry, setEditingIndustry] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
 
   async function refresh() {
@@ -47,10 +49,13 @@ export function CompaniesView({
     event.preventDefault();
     if (!newName.trim()) return;
     setCreating(true);
-    const result = await createCompany({ data: { name: newName.trim() } });
+    const result = await createCompany({
+      data: { name: newName.trim(), industry: newIndustry.trim() },
+    });
     setCreating(false);
     if (result.success) {
       setNewName("");
+      setNewIndustry("");
       refresh();
     } else {
       setError(result.message);
@@ -60,13 +65,18 @@ export function CompaniesView({
   function startEdit(company: Company) {
     setEditingId(company.id);
     setEditingName(company.name);
+    setEditingIndustry(company.industry ?? "");
   }
 
   async function saveEdit() {
     if (!editingId || !editingName.trim()) return;
     setSavingEdit(true);
     const result = await updateCompany({
-      data: { companyId: editingId, name: editingName.trim() },
+      data: {
+        companyId: editingId,
+        name: editingName.trim(),
+        industry: editingIndustry.trim(),
+      },
     });
     setSavingEdit(false);
     if (result.success) {
@@ -100,12 +110,17 @@ export function CompaniesView({
       {canCreate ? (
         <form
           onSubmit={handleCreate}
-          className="mt-6 flex max-w-sm items-center gap-2"
+          className="mt-6 flex max-w-lg items-center gap-2"
         >
           <Input
             placeholder="New company name"
             value={newName}
             onChange={(event) => setNewName(event.target.value)}
+          />
+          <Input
+            placeholder="Industry (optional)"
+            value={newIndustry}
+            onChange={(event) => setNewIndustry(event.target.value)}
           />
           <Button
             type="submit"
@@ -118,10 +133,11 @@ export function CompaniesView({
       ) : null}
 
       <div className="panel mt-6 overflow-x-auto rounded-2xl">
-        <table className="w-full min-w-[520px] text-left text-sm">
+        <table className="w-full min-w-[620px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--line)] text-xs text-[var(--ink-soft)]">
               <th className="px-5 py-3 font-medium">Company</th>
+              <th className="px-5 py-3 font-medium">Industry</th>
               <th className="px-5 py-3 font-medium">Owner</th>
               <th className="px-5 py-3 font-medium">Created</th>
               <th className="px-5 py-3 font-medium" />
@@ -131,7 +147,7 @@ export function CompaniesView({
             {companies === null ? (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
                   Loading companies&hellip;
@@ -140,7 +156,7 @@ export function CompaniesView({
             ) : companies.length === 0 ? (
               <tr>
                 <td
-                  colSpan={4}
+                  colSpan={5}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
                   No companies yet.
@@ -162,6 +178,20 @@ export function CompaniesView({
                       />
                     ) : (
                       company.name
+                    )}
+                  </td>
+                  <td className="px-5 py-3 text-[var(--ink-soft)]">
+                    {editingId === company.id ? (
+                      <Input
+                        value={editingIndustry}
+                        onChange={(event) =>
+                          setEditingIndustry(event.target.value)
+                        }
+                        className="h-8 max-w-xs"
+                        placeholder="Industry"
+                      />
+                    ) : (
+                      (company.industry ?? "—")
                     )}
                   </td>
                   <td className="px-5 py-3 text-[var(--ink-soft)]">

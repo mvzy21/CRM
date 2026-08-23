@@ -5,6 +5,7 @@ import { requireAuth, requireRole } from "./access.ts";
 export interface Company {
   id: string;
   name: string;
+  industry: string | null;
   ownerId: string | null;
   ownerName: string | null;
   createdAt: string;
@@ -21,7 +22,7 @@ export const listCompanies = createServerFn({ method: "GET" }).handler(
 
     const { data, error } = await check.supabase
       .from("companies")
-      .select("id, name, owner_id, created_at, profiles(display_name, email)")
+      .select("id, name, industry, owner_id, created_at, profiles(display_name, email)")
       .order("created_at", { ascending: false });
 
     if (error) return { success: false, message: "Failed to load companies." };
@@ -31,6 +32,7 @@ export const listCompanies = createServerFn({ method: "GET" }).handler(
       return {
         id: row.id,
         name: row.name,
+        industry: row.industry,
         ownerId: row.owner_id,
         ownerName: owner?.display_name ?? owner?.email ?? null,
         createdAt: row.created_at,
@@ -43,6 +45,7 @@ export const listCompanies = createServerFn({ method: "GET" }).handler(
 
 const createCompanySchema = z.object({
   name: z.string().trim().min(1, "Company name is required").max(200),
+  industry: z.string().trim().max(100).optional().or(z.literal("")),
 });
 
 export const createCompany = createServerFn({ method: "POST" })
@@ -53,6 +56,7 @@ export const createCompany = createServerFn({ method: "POST" })
 
     const { error } = await check.supabase.from("companies").insert({
       name: data.name,
+      industry: data.industry || null,
       org_id: check.orgId,
       owner_id: check.userId,
     });
@@ -64,6 +68,7 @@ export const createCompany = createServerFn({ method: "POST" })
 const updateCompanySchema = z.object({
   companyId: z.string().uuid(),
   name: z.string().trim().min(1, "Company name is required").max(200),
+  industry: z.string().trim().max(100).optional().or(z.literal("")),
 });
 
 export const updateCompany = createServerFn({ method: "POST" })
@@ -74,7 +79,7 @@ export const updateCompany = createServerFn({ method: "POST" })
 
     const { data: updated, error } = await check.supabase
       .from("companies")
-      .update({ name: data.name })
+      .update({ name: data.name, industry: data.industry || null })
       .eq("id", data.companyId)
       .select("id")
       .maybeSingle();
