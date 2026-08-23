@@ -16,17 +16,26 @@ with check (
 );
 
 -- The owning Sales Rep or an Admin can edit lead details and temperature
--- (US-08, US-09). Phase 3 adds separate policies scoping the tech/finance
--- review fields to tech_lead/finance_lead once the approval workflow lands --
--- this policy is not meant to grant them write access to those columns.
+-- (US-08, US-09). The owner's branch is restricted to status = 'new' so
+-- they can't use a raw update to jump the lead past the approval workflow
+-- (escalate/review/mark-cold each require their own role, enforced by the
+-- Phase 3 policies) -- Admin keeps unrestricted edit access to basic
+-- fields regardless of status, since Admin has no role in the approval
+-- workflow itself but does retain the general edit override.
 create policy "leads_update_owner_or_admin"
 on public.leads for update
 to authenticated
 using (
     org_id = public.current_user_org()
-    and (owner_id = auth.uid() or public.current_user_role() = 'admin')
+    and (
+        (owner_id = auth.uid() and status = 'new')
+        or public.current_user_role() = 'admin'
+    )
 )
 with check (
     org_id = public.current_user_org()
-    and (owner_id = auth.uid() or public.current_user_role() = 'admin')
+    and (
+        (owner_id = auth.uid() and status = 'new')
+        or public.current_user_role() = 'admin'
+    )
 );
