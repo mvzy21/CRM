@@ -47,6 +47,15 @@ export function WorkspaceShell({ workspaceId, isAdmin }: WorkspaceShellProps) {
             Contacts
           </Link>
 
+          <Link
+            to="/workspace/$workspaceId/leads"
+            params={{ workspaceId }}
+            className="nav-link text-sm font-medium"
+            activeProps={{ className: "is-active" }}
+          >
+            Leads
+          </Link>
+
           {isAdmin ? (
             <Link
               to="/workspace/$workspaceId/team"
