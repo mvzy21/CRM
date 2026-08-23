@@ -1,13 +1,7 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { ContactsView } from "#/components/views/contacts/ContactsView.tsx";
-import { getServerProfile } from "#/lib/supabase/auth.ts";
 
 export const Route = createFileRoute("/workspace/$workspaceId/contacts")({
-  beforeLoad: async () => {
-    const profile = await getServerProfile();
-    if (!profile) throw redirect({ to: "/auth" });
-    return { profile };
-  },
   component: ContactsRoute,
 });
 
