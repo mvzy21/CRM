@@ -28,7 +28,11 @@ export const listCompanies = createServerFn({ method: "GET" }).handler(
     if (error) return { success: false, message: "Failed to load companies." };
 
     const companies: Company[] = data.map((row) => {
-      const owner = row.profiles?.[0];
+      // Supabase's untyped client infers this many-to-one embed as an array,
+      // but PostgREST actually returns a single object (or null) for it.
+      const owner = row.profiles as unknown as
+        | { display_name: string | null; email: string | null }
+        | null;
       return {
         id: row.id,
         name: row.name,
