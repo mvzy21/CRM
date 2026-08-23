@@ -3,9 +3,20 @@ import { SignInForm } from "./SignInForm";
 
 interface AuthViewProps {
   redirect?: string;
+  error?: string;
 }
 
-export function AuthView({ redirect }: AuthViewProps) {
+const ERROR_MESSAGES: Record<string, string> = {
+  invite_expired:
+    "This invite link has expired or was already used. Ask your admin to resend it.",
+  invalid_link: "This link is invalid.",
+};
+
+export function AuthView({ redirect, error }: AuthViewProps) {
+  const errorMessage = error
+    ? (ERROR_MESSAGES[error] ?? "Something went wrong with that link.")
+    : null;
+
   return (
     <main className="flex min-h-screen">
       <div className="relative hidden w-1/2 flex-col justify-between overflow-hidden bg-[#14181c] p-10 text-[#f3f1ec] md:flex">
@@ -57,6 +68,12 @@ export function AuthView({ redirect }: AuthViewProps) {
             Enter your email and password to sign in
             {redirect ? " and get back to your workspace" : ""}.
           </p>
+
+          {errorMessage ? (
+            <p role="alert" className="mb-4 rounded-md border border-[var(--destructive)]/30 bg-[var(--destructive)]/10 px-3 py-2 text-sm text-[var(--destructive)]">
+              {errorMessage}
+            </p>
+          ) : null}
 
           <SignInForm redirect={redirect} />
 

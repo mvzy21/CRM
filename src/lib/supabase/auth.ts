@@ -61,6 +61,62 @@ export const signInWithPassword = createServerFn({ method: "POST" })
     return { success: true as const };
   });
 
+const verifyInviteSchema = z.object({
+  tokenHash: z.string().min(1),
+});
+
+export const verifyInvite = createServerFn({ method: "POST" })
+  .validator(verifyInviteSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.verifyOtp({
+      token_hash: data.tokenHash,
+      type: "invite",
+    });
+
+    if (error) {
+      return {
+        success: false as const,
+        message: "This invite link is invalid or has expired.",
+      };
+    }
+
+    return { success: true as const };
+  });
+
+const setPasswordSchema = z.object({
+  password: z
+    .string()
+    .min(8, "Password must be at least 8 characters")
+    .max(128, "Password is too long"),
+});
+
+export const setPassword = createServerFn({ method: "POST" })
+  .validator(setPasswordSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+
+    if (!user) {
+      return {
+        success: false as const,
+        message: "Your session has expired. Please use your invite link again.",
+      };
+    }
+
+    const { error } = await supabase.auth.updateUser({
+      password: data.password,
+    });
+
+    if (error) {
+      return { success: false as const, message: "Failed to set password." };
+    }
+
+    return { success: true as const };
+  });
+
 export const signOut = createServerFn({ method: "POST" }).handler(async () => {
   const supabase = createServerSupabaseClient();
   await supabase.auth.signOut();

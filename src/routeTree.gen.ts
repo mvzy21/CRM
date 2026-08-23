@@ -11,6 +11,8 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthRouteImport } from './routes/auth'
+import { Route as InviteRouteImport } from './routes/invite'
+import { Route as SetPasswordRouteImport } from './routes/set-password'
 import { Route as WorkspaceIndexRouteImport } from './routes/workspace/index'
 import { Route as WorkspaceWorkspaceIdRouteRouteImport } from './routes/workspace/$workspaceId/route'
 import { Route as WorkspaceWorkspaceIdIndexRouteImport } from './routes/workspace/$workspaceId/index'
@@ -26,6 +28,16 @@ const IndexRoute = IndexRouteImport.update({
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const InviteRoute = InviteRouteImport.update({
+  id: '/invite',
+  path: '/invite',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SetPasswordRoute = SetPasswordRouteImport.update({
+  id: '/set-password',
+  path: '/set-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const WorkspaceIndexRoute = WorkspaceIndexRouteImport.update({
@@ -67,6 +79,8 @@ const WorkspaceWorkspaceIdTeamRoute =
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/invite': typeof InviteRoute
+  '/set-password': typeof SetPasswordRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRouteRouteWithChildren
   '/workspace/': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
@@ -77,6 +91,8 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/invite': typeof InviteRoute
+  '/set-password': typeof SetPasswordRoute
   '/workspace': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
   '/workspace/$workspaceId/contacts': typeof WorkspaceWorkspaceIdContactsRoute
@@ -87,6 +103,8 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/invite': typeof InviteRoute
+  '/set-password': typeof SetPasswordRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdRouteRouteWithChildren
   '/workspace/': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
@@ -99,6 +117,8 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/invite'
+    | '/set-password'
     | '/workspace/$workspaceId'
     | '/workspace/'
     | '/workspace/$workspaceId/companies'
@@ -109,6 +129,8 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/invite'
+    | '/set-password'
     | '/workspace'
     | '/workspace/$workspaceId/companies'
     | '/workspace/$workspaceId/contacts'
@@ -118,6 +140,8 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/auth'
+    | '/invite'
+    | '/set-password'
     | '/workspace/$workspaceId'
     | '/workspace/'
     | '/workspace/$workspaceId/companies'
@@ -129,6 +153,8 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthRoute: typeof AuthRoute
+  InviteRoute: typeof InviteRoute
+  SetPasswordRoute: typeof SetPasswordRoute
   WorkspaceWorkspaceIdRouteRoute: typeof WorkspaceWorkspaceIdRouteRouteWithChildren
   WorkspaceIndexRoute: typeof WorkspaceIndexRoute
 }
@@ -147,6 +173,20 @@ declare module '@tanstack/react-router' {
       path: '/auth'
       fullPath: '/auth'
       preLoaderRoute: typeof AuthRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/invite': {
+      id: '/invite'
+      path: '/invite'
+      fullPath: '/invite'
+      preLoaderRoute: typeof InviteRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/set-password': {
+      id: '/set-password'
+      path: '/set-password'
+      fullPath: '/set-password'
+      preLoaderRoute: typeof SetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/workspace/': {
@@ -217,6 +257,8 @@ const WorkspaceWorkspaceIdRouteRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthRoute: AuthRoute,
+  InviteRoute: InviteRoute,
+  SetPasswordRoute: SetPasswordRoute,
   WorkspaceWorkspaceIdRouteRoute: WorkspaceWorkspaceIdRouteRouteWithChildren,
   WorkspaceIndexRoute: WorkspaceIndexRoute,
 }
