@@ -1,17 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LeadsView } from "#/components/views/leads/LeadsView.tsx";
 
-export const Route = createFileRoute("/workspace/$workspaceId/leads")({
+export const Route = createFileRoute("/workspace/$workspaceId/leads/")({
   component: LeadsRoute,
 });
 
 function LeadsRoute() {
   const { profile } = Route.useRouteContext();
+  const { workspaceId } = Route.useParams();
   return (
     <LeadsView
+      workspaceId={workspaceId}
       currentUserId={profile.id}
-      currentUserRole={profile.role}
-      isAdmin={profile.role === "admin"}
       canCreate={profile.role === "sales_rep"}
     />
   );
