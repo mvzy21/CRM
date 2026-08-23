@@ -10,6 +10,7 @@ function LeadsRoute() {
   return (
     <LeadsView
       currentUserId={profile.id}
+      currentUserRole={profile.role}
       isAdmin={profile.role === "admin"}
       canCreate={profile.role === "sales_rep"}
     />
