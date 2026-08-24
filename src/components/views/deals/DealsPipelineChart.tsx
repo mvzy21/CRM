@@ -1,8 +1,19 @@
 import { FunnelChart } from "#/components/charts/funnel-chart.tsx";
-import { DEAL_STAGES, DEAL_STAGE_LABELS, type Deal } from "#/lib/supabase/deals.ts";
+import {
+  DEAL_STAGES,
+  DEAL_STAGE_LABELS,
+  type DealStage,
+  type DealStatus,
+} from "#/lib/supabase/deals.ts";
+
+/** Only what bucketing needs -- a full Deal satisfies this too. */
+interface PipelineDeal {
+  stage: DealStage;
+  status: DealStatus;
+}
 
 interface DealsPipelineChartProps {
-  deals: Deal[];
+  deals: PipelineDeal[];
 }
 
 export function DealsPipelineChart({ deals }: DealsPipelineChartProps) {

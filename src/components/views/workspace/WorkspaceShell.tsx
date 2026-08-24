@@ -1,4 +1,9 @@
-import { Link, Outlet, useNavigate, useRouterState } from "@tanstack/react-router";
+import {
+  Link,
+  Outlet,
+  useNavigate,
+  useRouterState,
+} from "@tanstack/react-router";
 import {
   Building2,
   Contact,
@@ -14,10 +19,7 @@ import { useEffect, useState } from "react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { signOut } from "#/lib/supabase/auth.ts";
-import { listCompanies } from "#/lib/supabase/companies.ts";
-import { listContacts } from "#/lib/supabase/contacts.ts";
-import { listDeals } from "#/lib/supabase/deals.ts";
-import { listLeads } from "#/lib/supabase/leads.ts";
+import { type RailCounts, getRailCounts } from "#/lib/supabase/overview.ts";
 import { ROLE_LABELS, type AppRole } from "#/lib/supabase/roles.ts";
 
 interface WorkspaceShellProps {
@@ -26,20 +28,6 @@ interface WorkspaceShellProps {
   userEmail: string | null;
   userRole: AppRole | null;
 }
-
-type Counts = {
-  companies: number | null;
-  contacts: number | null;
-  leads: number | null;
-  deals: number | null;
-};
-
-const EMPTY_COUNTS: Counts = {
-  companies: null,
-  contacts: null,
-  leads: null,
-  deals: null,
-};
 
 /** Three ascending bars -- the pipeline itself, echoing the funnel chart
  *  on the Deals view. Reads as a mark rather than a stock icon. */
@@ -62,7 +50,7 @@ export function WorkspaceShell({
 }: WorkspaceShellProps) {
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [counts, setCounts] = useState<Counts>(EMPTY_COUNTS);
+  const [counts, setCounts] = useState<RailCounts | null>(null);
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -81,20 +69,11 @@ export function WorkspaceShell({
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [drawerOpen]);
 
-  // Counts turn the rail into a status readout, not just a router.
+  // Counts turn the rail into a status readout, not just a router. One
+  // authenticated call with head-only count queries -- the rail renders on
+  // every page, so it must not fetch whole tables to measure them.
   useEffect(() => {
-    listCompanies().then(
-      (r) => r.success && setCounts((c) => ({ ...c, companies: r.companies.length })),
-    );
-    listContacts().then(
-      (r) => r.success && setCounts((c) => ({ ...c, contacts: r.contacts.length })),
-    );
-    listLeads().then(
-      (r) => r.success && setCounts((c) => ({ ...c, leads: r.leads.length })),
-    );
-    listDeals().then(
-      (r) => r.success && setCounts((c) => ({ ...c, deals: r.deals.length })),
-    );
+    getRailCounts().then((r) => r.success && setCounts(r.counts));
   }, []);
 
   async function handleSignOut() {
@@ -131,7 +110,7 @@ export function WorkspaceShell({
           >
             <Building2 className="rail-icon h-4 w-4" />
             Companies
-            {counts.companies !== null ? (
+            {counts ? (
               <span className="rail-count">{counts.companies}</span>
             ) : null}
           </Link>
@@ -144,7 +123,7 @@ export function WorkspaceShell({
           >
             <Contact className="rail-icon h-4 w-4" />
             Contacts
-            {counts.contacts !== null ? (
+            {counts ? (
               <span className="rail-count">{counts.contacts}</span>
             ) : null}
           </Link>
@@ -157,9 +136,7 @@ export function WorkspaceShell({
           >
             <Flame className="rail-icon h-4 w-4" />
             Leads
-            {counts.leads !== null ? (
-              <span className="rail-count">{counts.leads}</span>
-            ) : null}
+            {counts ? <span className="rail-count">{counts.leads}</span> : null}
           </Link>
 
           <Link
@@ -170,9 +147,7 @@ export function WorkspaceShell({
           >
             <Handshake className="rail-icon h-4 w-4" />
             Deals
-            {counts.deals !== null ? (
-              <span className="rail-count">{counts.deals}</span>
-            ) : null}
+            {counts ? <span className="rail-count">{counts.deals}</span> : null}
           </Link>
         </div>
 

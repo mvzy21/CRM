@@ -1,18 +1,11 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DealsPipelineChart } from "#/components/views/deals/DealsPipelineChart.tsx";
-import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
-import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
+import { DEAL_STAGE_LABELS } from "#/lib/supabase/deals.ts";
 import {
-  DEAL_STAGE_LABELS,
-  type Deal,
-  listDeals,
-} from "#/lib/supabase/deals.ts";
-import { type Lead, listLeads } from "#/lib/supabase/leads.ts";
-import {
-  type Reminder,
-  listMyUpcomingReminders,
-} from "#/lib/supabase/reminders.ts";
+  type WorkspaceOverview,
+  getWorkspaceOverview,
+} from "#/lib/supabase/overview.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 
 interface WorkspaceViewProps {
@@ -28,43 +21,19 @@ const LEAD_STATUS_LABELS: Record<string, string> = {
   converted: "Converted",
 };
 
-const OPEN_LEAD_STATUSES = new Set([
-  "new",
-  "escalated",
-  "tech_approved",
-  "finance_approved",
-]);
-
 export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
-  const [companies, setCompanies] = useState<Company[] | null>(null);
-  const [contacts, setContacts] = useState<Contact[] | null>(null);
-  const [leads, setLeads] = useState<Lead[] | null>(null);
-  const [deals, setDeals] = useState<Deal[] | null>(null);
-  const [reminders, setReminders] = useState<Reminder[] | null>(null);
+  const [overview, setOverview] = useState<WorkspaceOverview | null>(null);
 
   useEffect(() => {
-    listCompanies().then((r) => r.success && setCompanies(r.companies));
-    listContacts().then((r) => r.success && setContacts(r.contacts));
-    listLeads().then((r) => r.success && setLeads(r.leads));
-    listDeals().then((r) => r.success && setDeals(r.deals));
-    listMyUpcomingReminders().then(
-      (r) => r.success && setReminders(r.reminders),
-    );
+    getWorkspaceOverview().then((r) => r.success && setOverview(r.overview));
   }, []);
 
-  const openLeads =
-    leads?.filter((l) => OPEN_LEAD_STATUSES.has(l.status)) ?? [];
-  const openDeals = deals?.filter((d) => d.status === "open") ?? [];
-
   const stats = [
-    { label: "Companies", value: companies?.length ?? null },
-    { label: "Contacts", value: contacts?.length ?? null },
-    { label: "Open Leads", value: leads ? openLeads.length : null },
-    { label: "Open Deals", value: deals ? openDeals.length : null },
+    { label: "Companies", value: overview?.companies ?? null },
+    { label: "Contacts", value: overview?.contacts ?? null },
+    { label: "Open Leads", value: overview?.openLeads ?? null },
+    { label: "Open Deals", value: overview?.openDeals ?? null },
   ];
-
-  const recentLeads = leads?.slice(0, 5) ?? [];
-  const recentDeals = deals?.slice(0, 5) ?? [];
 
   return (
     <div>
@@ -89,22 +58,24 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
         ))}
       </div>
 
-      {deals && deals.length > 0 ? <DealsPipelineChart deals={deals} /> : null}
+      {overview && overview.pipeline.length > 0 ? (
+        <DealsPipelineChart deals={overview.pipeline} />
+      ) : null}
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         <div className="panel rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-[var(--ink)]">
             My Reminders
           </h2>
-          {reminders === null ? (
+          {overview === null ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">Loading…</p>
-          ) : reminders.length === 0 ? (
+          ) : overview.reminders.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">
               Nothing scheduled.
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-[var(--line)]">
-              {reminders.map((reminder) => (
+              {overview.reminders.map((reminder) => (
                 <li key={reminder.id} className="py-2.5">
                   {reminder.leadId ? (
                     <Link
@@ -140,13 +111,13 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
           <h2 className="text-sm font-semibold text-[var(--ink)]">
             Recent Leads
           </h2>
-          {leads === null ? (
+          {overview === null ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">Loading…</p>
-          ) : recentLeads.length === 0 ? (
+          ) : overview.recentLeads.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">No leads yet.</p>
           ) : (
             <ul className="mt-3 divide-y divide-[var(--line)]">
-              {recentLeads.map((lead) => (
+              {overview.recentLeads.map((lead) => (
                 <li
                   key={lead.id}
                   className="flex items-center justify-between py-2.5"
@@ -171,15 +142,15 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
           <h2 className="text-sm font-semibold text-[var(--ink)]">
             Recent Deals
           </h2>
-          {deals === null ? (
+          {overview === null ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">Loading…</p>
-          ) : recentDeals.length === 0 ? (
+          ) : overview.recentDeals.length === 0 ? (
             <p className="mt-3 text-sm text-[var(--ink-soft)]">
               No deals yet — convert a finance-approved lead to create one.
             </p>
           ) : (
             <ul className="mt-3 divide-y divide-[var(--line)]">
-              {recentDeals.map((deal) => (
+              {overview.recentDeals.map((deal) => (
                 <li
                   key={deal.id}
                   className="flex items-center justify-between py-2.5"
