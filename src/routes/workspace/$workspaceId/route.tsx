@@ -22,6 +22,8 @@ function WorkspaceLayout() {
     <WorkspaceShell
       workspaceId={workspaceId}
       isAdmin={profile?.role === "admin"}
+      userEmail={profile?.email ?? null}
+      userRole={profile?.role ?? null}
     />
   );
 }

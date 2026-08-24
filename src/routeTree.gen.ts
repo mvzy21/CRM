@@ -18,8 +18,11 @@ import { Route as WorkspaceWorkspaceIdRouteRouteImport } from './routes/workspac
 import { Route as WorkspaceWorkspaceIdIndexRouteImport } from './routes/workspace/$workspaceId/index'
 import { Route as WorkspaceWorkspaceIdCompaniesRouteImport } from './routes/workspace/$workspaceId/companies'
 import { Route as WorkspaceWorkspaceIdContactsRouteImport } from './routes/workspace/$workspaceId/contacts'
-import { Route as WorkspaceWorkspaceIdLeadsRouteImport } from './routes/workspace/$workspaceId/leads'
 import { Route as WorkspaceWorkspaceIdTeamRouteImport } from './routes/workspace/$workspaceId/team'
+import { Route as WorkspaceWorkspaceIdDealsIndexRouteImport } from './routes/workspace/$workspaceId/deals/index'
+import { Route as WorkspaceWorkspaceIdDealsDealIdRouteImport } from './routes/workspace/$workspaceId/deals/$dealId'
+import { Route as WorkspaceWorkspaceIdLeadsIndexRouteImport } from './routes/workspace/$workspaceId/leads/index'
+import { Route as WorkspaceWorkspaceIdLeadsLeadIdRouteImport } from './routes/workspace/$workspaceId/leads/$leadId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -70,16 +73,34 @@ const WorkspaceWorkspaceIdContactsRoute =
     path: '/contacts',
     getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
   } as any)
-const WorkspaceWorkspaceIdLeadsRoute =
-  WorkspaceWorkspaceIdLeadsRouteImport.update({
-    id: '/leads',
-    path: '/leads',
-    getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
-  } as any)
 const WorkspaceWorkspaceIdTeamRoute =
   WorkspaceWorkspaceIdTeamRouteImport.update({
     id: '/team',
     path: '/team',
+    getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
+  } as any)
+const WorkspaceWorkspaceIdDealsIndexRoute =
+  WorkspaceWorkspaceIdDealsIndexRouteImport.update({
+    id: '/deals/',
+    path: '/deals/',
+    getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
+  } as any)
+const WorkspaceWorkspaceIdDealsDealIdRoute =
+  WorkspaceWorkspaceIdDealsDealIdRouteImport.update({
+    id: '/deals/$dealId',
+    path: '/deals/$dealId',
+    getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
+  } as any)
+const WorkspaceWorkspaceIdLeadsIndexRoute =
+  WorkspaceWorkspaceIdLeadsIndexRouteImport.update({
+    id: '/leads/',
+    path: '/leads/',
+    getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
+  } as any)
+const WorkspaceWorkspaceIdLeadsLeadIdRoute =
+  WorkspaceWorkspaceIdLeadsLeadIdRouteImport.update({
+    id: '/leads/$leadId',
+    path: '/leads/$leadId',
     getParentRoute: () => WorkspaceWorkspaceIdRouteRoute,
   } as any)
 
@@ -92,9 +113,12 @@ export interface FileRoutesByFullPath {
   '/workspace/': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
   '/workspace/$workspaceId/contacts': typeof WorkspaceWorkspaceIdContactsRoute
-  '/workspace/$workspaceId/leads': typeof WorkspaceWorkspaceIdLeadsRoute
   '/workspace/$workspaceId/team': typeof WorkspaceWorkspaceIdTeamRoute
   '/workspace/$workspaceId/': typeof WorkspaceWorkspaceIdIndexRoute
+  '/workspace/$workspaceId/deals/$dealId': typeof WorkspaceWorkspaceIdDealsDealIdRoute
+  '/workspace/$workspaceId/leads/$leadId': typeof WorkspaceWorkspaceIdLeadsLeadIdRoute
+  '/workspace/$workspaceId/deals/': typeof WorkspaceWorkspaceIdDealsIndexRoute
+  '/workspace/$workspaceId/leads/': typeof WorkspaceWorkspaceIdLeadsIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -104,9 +128,12 @@ export interface FileRoutesByTo {
   '/workspace': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
   '/workspace/$workspaceId/contacts': typeof WorkspaceWorkspaceIdContactsRoute
-  '/workspace/$workspaceId/leads': typeof WorkspaceWorkspaceIdLeadsRoute
   '/workspace/$workspaceId/team': typeof WorkspaceWorkspaceIdTeamRoute
   '/workspace/$workspaceId': typeof WorkspaceWorkspaceIdIndexRoute
+  '/workspace/$workspaceId/deals/$dealId': typeof WorkspaceWorkspaceIdDealsDealIdRoute
+  '/workspace/$workspaceId/leads/$leadId': typeof WorkspaceWorkspaceIdLeadsLeadIdRoute
+  '/workspace/$workspaceId/deals': typeof WorkspaceWorkspaceIdDealsIndexRoute
+  '/workspace/$workspaceId/leads': typeof WorkspaceWorkspaceIdLeadsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -118,9 +145,12 @@ export interface FileRoutesById {
   '/workspace/': typeof WorkspaceIndexRoute
   '/workspace/$workspaceId/companies': typeof WorkspaceWorkspaceIdCompaniesRoute
   '/workspace/$workspaceId/contacts': typeof WorkspaceWorkspaceIdContactsRoute
-  '/workspace/$workspaceId/leads': typeof WorkspaceWorkspaceIdLeadsRoute
   '/workspace/$workspaceId/team': typeof WorkspaceWorkspaceIdTeamRoute
   '/workspace/$workspaceId/': typeof WorkspaceWorkspaceIdIndexRoute
+  '/workspace/$workspaceId/deals/$dealId': typeof WorkspaceWorkspaceIdDealsDealIdRoute
+  '/workspace/$workspaceId/leads/$leadId': typeof WorkspaceWorkspaceIdLeadsLeadIdRoute
+  '/workspace/$workspaceId/deals/': typeof WorkspaceWorkspaceIdDealsIndexRoute
+  '/workspace/$workspaceId/leads/': typeof WorkspaceWorkspaceIdLeadsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -133,9 +163,12 @@ export interface FileRouteTypes {
     | '/workspace/'
     | '/workspace/$workspaceId/companies'
     | '/workspace/$workspaceId/contacts'
-    | '/workspace/$workspaceId/leads'
     | '/workspace/$workspaceId/team'
     | '/workspace/$workspaceId/'
+    | '/workspace/$workspaceId/deals/$dealId'
+    | '/workspace/$workspaceId/leads/$leadId'
+    | '/workspace/$workspaceId/deals/'
+    | '/workspace/$workspaceId/leads/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -145,9 +178,12 @@ export interface FileRouteTypes {
     | '/workspace'
     | '/workspace/$workspaceId/companies'
     | '/workspace/$workspaceId/contacts'
-    | '/workspace/$workspaceId/leads'
     | '/workspace/$workspaceId/team'
     | '/workspace/$workspaceId'
+    | '/workspace/$workspaceId/deals/$dealId'
+    | '/workspace/$workspaceId/leads/$leadId'
+    | '/workspace/$workspaceId/deals'
+    | '/workspace/$workspaceId/leads'
   id:
     | '__root__'
     | '/'
@@ -158,9 +194,12 @@ export interface FileRouteTypes {
     | '/workspace/'
     | '/workspace/$workspaceId/companies'
     | '/workspace/$workspaceId/contacts'
-    | '/workspace/$workspaceId/leads'
     | '/workspace/$workspaceId/team'
     | '/workspace/$workspaceId/'
+    | '/workspace/$workspaceId/deals/$dealId'
+    | '/workspace/$workspaceId/leads/$leadId'
+    | '/workspace/$workspaceId/deals/'
+    | '/workspace/$workspaceId/leads/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -237,18 +276,39 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WorkspaceWorkspaceIdContactsRouteImport
       parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
     }
-    '/workspace/$workspaceId/leads': {
-      id: '/workspace/$workspaceId/leads'
-      path: '/leads'
-      fullPath: '/workspace/$workspaceId/leads'
-      preLoaderRoute: typeof WorkspaceWorkspaceIdLeadsRouteImport
-      parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
-    }
     '/workspace/$workspaceId/team': {
       id: '/workspace/$workspaceId/team'
       path: '/team'
       fullPath: '/workspace/$workspaceId/team'
       preLoaderRoute: typeof WorkspaceWorkspaceIdTeamRouteImport
+      parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
+    }
+    '/workspace/$workspaceId/deals/': {
+      id: '/workspace/$workspaceId/deals/'
+      path: '/deals'
+      fullPath: '/workspace/$workspaceId/deals/'
+      preLoaderRoute: typeof WorkspaceWorkspaceIdDealsIndexRouteImport
+      parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
+    }
+    '/workspace/$workspaceId/deals/$dealId': {
+      id: '/workspace/$workspaceId/deals/$dealId'
+      path: '/deals/$dealId'
+      fullPath: '/workspace/$workspaceId/deals/$dealId'
+      preLoaderRoute: typeof WorkspaceWorkspaceIdDealsDealIdRouteImport
+      parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
+    }
+    '/workspace/$workspaceId/leads/': {
+      id: '/workspace/$workspaceId/leads/'
+      path: '/leads'
+      fullPath: '/workspace/$workspaceId/leads/'
+      preLoaderRoute: typeof WorkspaceWorkspaceIdLeadsIndexRouteImport
+      parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
+    }
+    '/workspace/$workspaceId/leads/$leadId': {
+      id: '/workspace/$workspaceId/leads/$leadId'
+      path: '/leads/$leadId'
+      fullPath: '/workspace/$workspaceId/leads/$leadId'
+      preLoaderRoute: typeof WorkspaceWorkspaceIdLeadsLeadIdRouteImport
       parentRoute: typeof WorkspaceWorkspaceIdRouteRoute
     }
   }
@@ -257,18 +317,24 @@ declare module '@tanstack/react-router' {
 interface WorkspaceWorkspaceIdRouteRouteChildren {
   WorkspaceWorkspaceIdCompaniesRoute: typeof WorkspaceWorkspaceIdCompaniesRoute
   WorkspaceWorkspaceIdContactsRoute: typeof WorkspaceWorkspaceIdContactsRoute
-  WorkspaceWorkspaceIdLeadsRoute: typeof WorkspaceWorkspaceIdLeadsRoute
   WorkspaceWorkspaceIdTeamRoute: typeof WorkspaceWorkspaceIdTeamRoute
   WorkspaceWorkspaceIdIndexRoute: typeof WorkspaceWorkspaceIdIndexRoute
+  WorkspaceWorkspaceIdDealsDealIdRoute: typeof WorkspaceWorkspaceIdDealsDealIdRoute
+  WorkspaceWorkspaceIdLeadsLeadIdRoute: typeof WorkspaceWorkspaceIdLeadsLeadIdRoute
+  WorkspaceWorkspaceIdDealsIndexRoute: typeof WorkspaceWorkspaceIdDealsIndexRoute
+  WorkspaceWorkspaceIdLeadsIndexRoute: typeof WorkspaceWorkspaceIdLeadsIndexRoute
 }
 
 const WorkspaceWorkspaceIdRouteRouteChildren: WorkspaceWorkspaceIdRouteRouteChildren =
   {
     WorkspaceWorkspaceIdCompaniesRoute: WorkspaceWorkspaceIdCompaniesRoute,
     WorkspaceWorkspaceIdContactsRoute: WorkspaceWorkspaceIdContactsRoute,
-    WorkspaceWorkspaceIdLeadsRoute: WorkspaceWorkspaceIdLeadsRoute,
     WorkspaceWorkspaceIdTeamRoute: WorkspaceWorkspaceIdTeamRoute,
     WorkspaceWorkspaceIdIndexRoute: WorkspaceWorkspaceIdIndexRoute,
+    WorkspaceWorkspaceIdDealsDealIdRoute: WorkspaceWorkspaceIdDealsDealIdRoute,
+    WorkspaceWorkspaceIdLeadsLeadIdRoute: WorkspaceWorkspaceIdLeadsLeadIdRoute,
+    WorkspaceWorkspaceIdDealsIndexRoute: WorkspaceWorkspaceIdDealsIndexRoute,
+    WorkspaceWorkspaceIdLeadsIndexRoute: WorkspaceWorkspaceIdLeadsIndexRoute,
   }
 
 const WorkspaceWorkspaceIdRouteRouteWithChildren =

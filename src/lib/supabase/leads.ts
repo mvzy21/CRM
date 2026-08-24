@@ -87,6 +87,30 @@ function mapLead(row: LeadRow): Lead {
   };
 }
 
+export const getLead = createServerFn({ method: "GET" })
+  .validator(z.object({ leadId: z.string().uuid() }))
+  .handler(
+    async ({
+      data,
+    }): Promise<
+      { success: true; lead: Lead } | { success: false; message: string }
+    > => {
+      const check = await requireAuth();
+      if (!check.ok) return { success: false, message: check.message };
+
+      const { data: row, error } = await check.supabase
+        .from("leads")
+        .select(leadSelect)
+        .eq("id", data.leadId)
+        .maybeSingle();
+
+      if (error) return { success: false, message: "Failed to load lead." };
+      if (!row) return { success: false, message: "Lead not found." };
+
+      return { success: true, lead: mapLead(row as unknown as LeadRow) };
+    },
+  );
+
 export const listLeads = createServerFn({ method: "GET" }).handler(
   async (): Promise<
     { success: true; leads: Lead[] } | { success: false; message: string }
@@ -385,4 +409,67 @@ export const markLeadCold = createServerFn({ method: "POST" })
 
     if (error) return { success: false, message: "Failed to mark lead Cold." };
     return { success: true };
+  });
+
+// US-14: Sales Manager converts a finance-approved lead into a Deal.
+// The Deal keeps the original lead's owner (continuity for the rep who
+// worked the lead), not the converting Sales Manager.
+const convertLeadSchema = z.object({
+  leadId: z.string().uuid(),
+});
+
+export const convertLead = createServerFn({ method: "POST" })
+  .validator(convertLeadSchema)
+  .handler(async ({
+    data,
+  }): Promise<
+    { success: true; dealId: string } | { success: false; message: string }
+  > => {
+    const check = await requireRole(["sales_manager"]);
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: lead } = await check.supabase
+      .from("leads")
+      .select("status, title, company_id, contact_id, owner_id")
+      .eq("id", data.leadId)
+      .maybeSingle();
+
+    if (!lead) return { success: false, message: "Lead not found." };
+    if (lead.status !== "finance_approved") {
+      return {
+        success: false,
+        message: "Only a finance-approved lead can be converted.",
+      };
+    }
+
+    const { data: deal, error: dealError } = await check.supabase
+      .from("deals")
+      .insert({
+        org_id: check.orgId,
+        lead_id: data.leadId,
+        company_id: lead.company_id,
+        contact_id: lead.contact_id,
+        owner_id: lead.owner_id,
+        title: lead.title,
+      })
+      .select("id")
+      .single();
+
+    if (dealError || !deal) {
+      return { success: false, message: "Failed to create deal." };
+    }
+
+    const { error: leadError } = await check.supabase
+      .from("leads")
+      .update({ status: "converted" })
+      .eq("id", data.leadId);
+
+    if (leadError) {
+      return {
+        success: false,
+        message: "Deal created, but failed to mark the lead converted.",
+      };
+    }
+
+    return { success: true, dealId: deal.id };
   });
