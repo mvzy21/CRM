@@ -31,7 +31,12 @@ function applyThemeMode(mode: ThemeMode) {
   document.documentElement.style.colorScheme = resolved;
 }
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  /** "rail" styles the control for the dark command rail. */
+  variant?: "chip" | "rail";
+}
+
+export default function ThemeToggle({ variant = "chip" }: ThemeToggleProps) {
   const [mode, setMode] = useState<ThemeMode>("auto");
 
   useEffect(() => {
@@ -67,13 +72,18 @@ export default function ThemeToggle() {
       ? "Theme mode: auto (system). Click to switch to light mode."
       : `Theme mode: ${mode}. Click to switch mode.`;
 
+  const className =
+    variant === "rail"
+      ? "rail-mono rounded-md border border-[var(--rail-line)] bg-[var(--rail-bg-soft)] px-2.5 py-1 text-[11px] font-medium text-[var(--rail-ink-soft)] transition hover:text-[var(--rail-ink)]"
+      : "rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)] shadow-[0_4px_14px_rgba(20,24,28,0.06)] transition hover:-translate-y-0.5";
+
   return (
     <button
       type="button"
       onClick={toggleMode}
       aria-label={label}
       title={label}
-      className="rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)] shadow-[0_4px_14px_rgba(20,24,28,0.06)] transition hover:-translate-y-0.5"
+      className={className}
     >
       {mode === "auto" ? "Auto" : mode === "dark" ? "Dark" : "Light"}
     </button>
