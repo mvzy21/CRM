@@ -36,8 +36,9 @@ on public.activities for select
 to authenticated
 using (org_id = public.current_user_org());
 
--- Log Customer Interaction (US-17): the deal owner, their Sales Manager,
--- or an Admin can log an activity against a deal.
+-- Log Customer Interaction (US-17): only the deal owner (Sales Rep) or an
+-- Admin can log an activity against a deal. Sales Manager's role stops at
+-- converting the lead -- oversight only, not day-to-day deal operation.
 create policy "activities_insert_deal_access"
 on public.activities for insert
 to authenticated
@@ -50,7 +51,7 @@ with check (
           and d.org_id = public.current_user_org()
           and (
               d.owner_id = auth.uid()
-              or public.current_user_role() in ('admin', 'sales_manager')
+              or public.current_user_role() = 'admin'
           )
     )
 );
