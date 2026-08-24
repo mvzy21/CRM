@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth, requireRole } from "./access.ts";
+import { logTimelineEvent } from "./timeline.ts";
 
 export type LeadTemperature = "hot" | "cold" | null;
 export type ReviewDecision = "approved" | "rejected" | null;
@@ -292,6 +293,15 @@ export const escalateLead = createServerFn({ method: "POST" })
       .eq("id", data.leadId);
 
     if (error) return { success: false, message: "Failed to escalate lead." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary: "Escalated to Tech Review",
+    });
+
     return { success: true };
   });
 
@@ -332,6 +342,18 @@ export const reviewTechnicalFeasibility = createServerFn({ method: "POST" })
       .eq("id", data.leadId);
 
     if (error) return { success: false, message: "Failed to submit review." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary:
+        data.decision === "approved"
+          ? "Technical review: Approved"
+          : "Technical review: Rejected",
+    });
+
     return { success: true };
   });
 
@@ -373,6 +395,18 @@ export const reviewFinancialViability = createServerFn({ method: "POST" })
       .eq("id", data.leadId);
 
     if (error) return { success: false, message: "Failed to submit review." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary:
+        data.decision === "approved"
+          ? "Financial review: Approved"
+          : "Financial review: Rejected",
+    });
+
     return { success: true };
   });
 
@@ -408,6 +442,15 @@ export const markLeadCold = createServerFn({ method: "POST" })
       .eq("id", data.leadId);
 
     if (error) return { success: false, message: "Failed to mark lead Cold." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary: "Marked Cold",
+    });
+
     return { success: true };
   });
 
@@ -490,6 +533,15 @@ export const reverseLeadStatus = createServerFn({ method: "POST" })
     if (error) {
       return { success: false, message: "Failed to reverse lead status." };
     }
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary: `Admin reversed status back to ${update.status}`,
+    });
+
     return { success: true };
   });
 
@@ -553,6 +605,21 @@ export const convertLead = createServerFn({ method: "POST" })
           message: "Deal created, but failed to mark the lead converted.",
         };
       }
+
+      await logTimelineEvent(check.supabase, {
+        orgId: check.orgId,
+        actorId: check.userId,
+        entityType: "lead",
+        entityId: data.leadId,
+        summary: "Converted to Deal",
+      });
+      await logTimelineEvent(check.supabase, {
+        orgId: check.orgId,
+        actorId: check.userId,
+        entityType: "deal",
+        entityId: deal.id,
+        summary: "Deal created from converted lead",
+      });
 
       return { success: true, dealId: deal.id };
     },
