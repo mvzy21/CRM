@@ -16,6 +16,7 @@ import {
   DEAL_STAGE_LABELS,
   type Deal,
   type DealStage,
+  closeDealWon,
   getDeal,
   listActivities,
   logActivity,
@@ -23,6 +24,7 @@ import {
 } from "#/lib/supabase/deals.ts";
 import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
 import { formatRelativeTime } from "#/lib/utils.ts";
+import { CloseLostDialog } from "./CloseLostDialog.tsx";
 import { DealEditDialog } from "./DealEditDialog.tsx";
 import { DealStageStepper } from "./DealStageStepper.tsx";
 
@@ -50,6 +52,8 @@ export function DealDetailView({
   const [error, setError] = useState<string | null>(null);
   const [tab, setTab] = useState<"overview" | "activity">("overview");
   const [editOpen, setEditOpen] = useState(false);
+  const [closeLostOpen, setCloseLostOpen] = useState(false);
+  const [closingWon, setClosingWon] = useState(false);
   const [movingStage, setMovingStage] = useState(false);
   const [logKind, setLogKind] = useState<Activity["kind"]>("call");
   const [logBody, setLogBody] = useState("");
@@ -79,6 +83,15 @@ export function DealDetailView({
     setMovingStage(true);
     const result = await moveDealStage({ data: { dealId, stage } });
     setMovingStage(false);
+    if (result.success) refresh();
+    else setError(result.message);
+  }
+
+  async function handleCloseWon() {
+    if (!confirm("Close this deal as Won?")) return;
+    setClosingWon(true);
+    const result = await closeDealWon({ data: { dealId } });
+    setClosingWon(false);
     if (result.success) refresh();
     else setError(result.message);
   }
@@ -117,6 +130,7 @@ export function DealDetailView({
   }
 
   const canEdit = isAdmin || deal.ownerId === currentUserId;
+  const canClose = canEdit && deal.status === "open";
 
   return (
     <div>
@@ -139,11 +153,26 @@ export function DealDetailView({
           </p>
         </div>
 
-        {canEdit ? (
-          <Button variant="outline" onClick={() => setEditOpen(true)}>
-            Edit
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap gap-2">
+          {canEdit ? (
+            <Button variant="outline" onClick={() => setEditOpen(true)}>
+              Edit
+            </Button>
+          ) : null}
+          {canClose ? (
+            <Button disabled={closingWon} onClick={handleCloseWon}>
+              {closingWon ? "Closing..." : "Close Won"}
+            </Button>
+          ) : null}
+          {canClose ? (
+            <Button
+              variant="destructive"
+              onClick={() => setCloseLostOpen(true)}
+            >
+              Close Lost
+            </Button>
+          ) : null}
+        </div>
       </div>
 
       <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -250,6 +279,17 @@ export function DealDetailView({
               {deal.requirements ?? "—"}
             </p>
           </div>
+
+          {deal.status === "lost" ? (
+            <div className="sm:col-span-2">
+              <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+                Lost Reason
+              </p>
+              <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--ink)]">
+                {deal.lostReason ?? "—"}
+              </p>
+            </div>
+          ) : null}
         </div>
       ) : null}
 
@@ -320,6 +360,13 @@ export function DealDetailView({
       <DealEditDialog
         open={editOpen}
         onOpenChange={setEditOpen}
+        deal={deal}
+        onSaved={refresh}
+      />
+
+      <CloseLostDialog
+        open={closeLostOpen}
+        onOpenChange={setCloseLostOpen}
         deal={deal}
         onSaved={refresh}
       />

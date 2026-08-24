@@ -196,6 +196,67 @@ export const moveDealStage = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+// US-20: close a deal as Won.
+export const closeDealWon = createServerFn({ method: "POST" })
+  .validator(z.object({ dealId: z.string().uuid() }))
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireAuth();
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: updated, error } = await check.supabase
+      .from("deals")
+      .update({ status: "won", closed_at: new Date().toISOString() })
+      .eq("id", data.dealId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) return { success: false, message: "Failed to close deal." };
+    if (!updated) {
+      return {
+        success: false,
+        message:
+          "You don't have permission to close this deal, or it's already closed.",
+      };
+    }
+
+    return { success: true };
+  });
+
+// US-21: close a deal as Lost, with a required reason.
+const closeDealLostSchema = z.object({
+  dealId: z.string().uuid(),
+  lostReason: z.string().trim().min(1, "A reason is required").max(500),
+});
+
+export const closeDealLost = createServerFn({ method: "POST" })
+  .validator(closeDealLostSchema)
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireAuth();
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: updated, error } = await check.supabase
+      .from("deals")
+      .update({
+        status: "lost",
+        lost_reason: data.lostReason,
+        closed_at: new Date().toISOString(),
+      })
+      .eq("id", data.dealId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) return { success: false, message: "Failed to close deal." };
+    if (!updated) {
+      return {
+        success: false,
+        message:
+          "You don't have permission to close this deal, or it's already closed.",
+      };
+    }
+
+    return { success: true };
+  });
+
 export interface Activity {
   id: string;
   kind: "call" | "meeting" | "note";
@@ -221,14 +282,17 @@ export const listActivities = createServerFn({ method: "GET" })
     async ({
       data,
     }): Promise<
-      { success: true; activities: Activity[] } | { success: false; message: string }
+      | { success: true; activities: Activity[] }
+      | { success: false; message: string }
     > => {
       const check = await requireAuth();
       if (!check.ok) return { success: false, message: check.message };
 
       const { data: rows, error } = await check.supabase
         .from("activities")
-        .select("id, kind, body, author_id, created_at, author:profiles!author_id(display_name, email)")
+        .select(
+          "id, kind, body, author_id, created_at, author:profiles!author_id(display_name, email)",
+        )
         .eq("deal_id", data.dealId)
         .order("created_at", { ascending: false });
 
@@ -272,7 +336,8 @@ export const logActivity = createServerFn({ method: "POST" })
     if (error) {
       return {
         success: false,
-        message: "Failed to log interaction. You may not have access to this deal.",
+        message:
+          "Failed to log interaction. You may not have access to this deal.",
       };
     }
 

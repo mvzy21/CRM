@@ -18,13 +18,19 @@ with check (
 );
 
 -- The owning Sales Rep or an Admin can update deal details, move it
--- through the pipeline stage, and close it (US-15, 16, 20, 21).
+-- through the pipeline stage, and close it (US-15, 16, 20, 21). The
+-- owner's branch is restricted to status = 'open' so a rep can't keep
+-- editing/moving a deal after it's Won or Lost -- Admin keeps unrestricted
+-- edit access regardless of status.
 create policy "deals_update_owner_or_admin"
 on public.deals for update
 to authenticated
 using (
     org_id = public.current_user_org()
-    and (owner_id = auth.uid() or public.current_user_role() = 'admin')
+    and (
+        (owner_id = auth.uid() and status = 'open')
+        or public.current_user_role() = 'admin'
+    )
 )
 with check (
     org_id = public.current_user_org()
