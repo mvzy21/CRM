@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth } from "./access.ts";
+import { logTimelineEvent } from "./timeline.ts";
 
 export type DealStage = "proposal" | "negotiation" | "contract";
 export type DealStatus = "open" | "won" | "lost";
@@ -193,6 +194,14 @@ export const moveDealStage = createServerFn({ method: "POST" })
       };
     }
 
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "deal",
+      entityId: data.dealId,
+      summary: `Moved to ${DEAL_STAGE_LABELS[data.stage]}`,
+    });
+
     return { success: true };
   });
 
@@ -218,6 +227,14 @@ export const closeDealWon = createServerFn({ method: "POST" })
           "You don't have permission to close this deal, or it's already closed.",
       };
     }
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "deal",
+      entityId: data.dealId,
+      summary: "Closed as Won",
+    });
 
     return { success: true };
   });
@@ -253,6 +270,14 @@ export const closeDealLost = createServerFn({ method: "POST" })
           "You don't have permission to close this deal, or it's already closed.",
       };
     }
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "deal",
+      entityId: data.dealId,
+      summary: `Closed as Lost: ${data.lostReason}`,
+    });
 
     return { success: true };
   });

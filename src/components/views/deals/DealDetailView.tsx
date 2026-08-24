@@ -23,6 +23,11 @@ import {
   moveDealStage,
 } from "#/lib/supabase/deals.ts";
 import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
+import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
+import {
+  type TimelineEvent,
+  listDealTimeline,
+} from "#/lib/supabase/timeline.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { CloseLostDialog } from "./CloseLostDialog.tsx";
 import { DealEditDialog } from "./DealEditDialog.tsx";
@@ -50,7 +55,9 @@ export function DealDetailView({
   const [deal, setDeal] = useState<Deal | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"overview" | "activity">("overview");
+  const [tab, setTab] = useState<"overview" | "activity" | "timeline">(
+    "overview",
+  );
   const [editOpen, setEditOpen] = useState(false);
   const [closeLostOpen, setCloseLostOpen] = useState(false);
   const [closingWon, setClosingWon] = useState(false);
@@ -58,6 +65,9 @@ export function DealDetailView({
   const [logKind, setLogKind] = useState<Activity["kind"]>("call");
   const [logBody, setLogBody] = useState("");
   const [loggingActivity, setLoggingActivity] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(
+    null,
+  );
 
   async function refresh() {
     const [dealResult, activitiesResult] = await Promise.all([
@@ -78,6 +88,14 @@ export function DealDetailView({
   useEffect(() => {
     refresh();
   }, [dealId]);
+
+  // biome-ignore lint/correctness/useExhaustiveDependencies: fetch lazily when the Timeline tab is opened
+  useEffect(() => {
+    if (tab !== "timeline") return;
+    listDealTimeline({ data: { dealId } }).then(
+      (result) => result.success && setTimelineEvents(result.events),
+    );
+  }, [tab, dealId]);
 
   async function handleStageChange(stage: DealStage) {
     setMovingStage(true);
@@ -231,7 +249,28 @@ export function DealDetailView({
         >
           Activity
         </button>
+        <button
+          type="button"
+          onClick={() => setTab("timeline")}
+          className={
+            "px-3 py-2 text-sm font-medium " +
+            (tab === "timeline"
+              ? "border-b-2 border-[var(--primary)] text-[var(--ink)]"
+              : "text-[var(--ink-soft)]")
+          }
+        >
+          Timeline
+        </button>
       </div>
+
+      {tab === "timeline" ? (
+        <div className="panel mt-6 rounded-2xl p-6">
+          <TimelineFeed
+            events={timelineEvents}
+            emptyMessage="No activity yet."
+          />
+        </div>
+      ) : null}
 
       {tab === "overview" ? (
         <div className="panel mt-6 grid grid-cols-1 gap-6 rounded-2xl p-6 sm:grid-cols-2">

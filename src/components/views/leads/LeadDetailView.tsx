@@ -23,6 +23,11 @@ import { LeadReviewDialog } from "./LeadReviewDialog.tsx";
 import { LeadStatusStepper } from "./LeadStatusStepper.tsx";
 import { MarkColdDialog } from "./MarkColdDialog.tsx";
 import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
+import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
+import {
+  type TimelineEvent,
+  listLeadTimeline,
+} from "#/lib/supabase/timeline.ts";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -63,15 +68,24 @@ export function LeadDetailView({
   const [markColdOpen, setMarkColdOpen] = useState(false);
   const [converting, setConverting] = useState(false);
   const [reversing, setReversing] = useState(false);
+  const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(
+    null,
+  );
 
   async function refresh() {
-    const [leadResult, companiesResult, contactsResult, techLeadsResult] =
-      await Promise.all([
-        getLead({ data: { leadId } }),
-        listCompanies(),
-        listContacts(),
-        listTechLeads(),
-      ]);
+    const [
+      leadResult,
+      companiesResult,
+      contactsResult,
+      techLeadsResult,
+      timelineResult,
+    ] = await Promise.all([
+      getLead({ data: { leadId } }),
+      listCompanies(),
+      listContacts(),
+      listTechLeads(),
+      listLeadTimeline({ data: { leadId } }),
+    ]);
 
     if (leadResult.success) {
       setLead(leadResult.lead);
@@ -82,6 +96,7 @@ export function LeadDetailView({
     if (companiesResult.success) setCompanies(companiesResult.companies);
     if (contactsResult.success) setContacts(contactsResult.contacts);
     if (techLeadsResult.success) setTechLeads(techLeadsResult.users);
+    if (timelineResult.success) setTimelineEvents(timelineResult.events);
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: fetch on mount + leadId change
@@ -326,6 +341,15 @@ export function LeadDetailView({
       </div>
 
       <RemindersPanel leadId={leadId} />
+
+      <div className="panel mt-6 rounded-2xl p-6">
+        <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+          Timeline
+        </p>
+        <div className="mt-4">
+          <TimelineFeed events={timelineEvents} />
+        </div>
+      </div>
 
       <LeadDialog
         open={editOpen}
