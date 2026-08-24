@@ -29,13 +29,27 @@ export function WorkspaceShell({
     <div className="min-h-screen bg-[var(--background)]">
       <header className="sticky top-0 z-40 border-b border-[var(--line)] bg-[var(--header-bg)] px-4 backdrop-blur-lg">
         <div className="flex items-center gap-3 py-3">
-          <span className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)]">
+          <Link
+            to="/workspace/$workspaceId"
+            params={{ workspaceId }}
+            className="inline-flex items-center gap-2 rounded-full border border-[var(--chip-line)] bg-[var(--chip-bg)] px-3 py-1.5 text-sm font-semibold text-[var(--ink)]"
+          >
             <span className="h-2 w-2 rounded-full bg-[var(--primary)]" />
             Altrium
-          </span>
+          </Link>
           <span className="rounded-md bg-[var(--muted)] px-2 py-1 text-xs font-medium text-[var(--muted-foreground)]">
             {workspaceId}
           </span>
+
+          <Link
+            to="/workspace/$workspaceId"
+            params={{ workspaceId }}
+            className="nav-link text-sm font-medium"
+            activeOptions={{ exact: true }}
+            activeProps={{ className: "is-active" }}
+          >
+            Home
+          </Link>
 
           <Link
             to="/workspace/$workspaceId/companies"

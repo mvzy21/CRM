@@ -2,6 +2,7 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { DEAL_STAGE_LABELS, type Deal, listDeals } from "#/lib/supabase/deals.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
+import { DealsPipelineChart } from "./DealsPipelineChart.tsx";
 
 interface DealsViewProps {
   workspaceId: string;
@@ -47,6 +48,8 @@ export function DealsView({ workspaceId }: DealsViewProps) {
           {error}
         </p>
       ) : null}
+
+      {deals && deals.length > 0 ? <DealsPipelineChart deals={deals} /> : null}
 
       <div className="panel mt-6 overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[700px] text-left text-sm">
