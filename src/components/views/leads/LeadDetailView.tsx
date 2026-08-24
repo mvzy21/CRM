@@ -10,7 +10,7 @@ import {
   convertLead,
   getLead,
   listTechLeads,
-  markLeadCold,
+  reverseLeadStatus,
   reviewFinancialViability,
   reviewTechnicalFeasibility,
   tagLeadTemperature,
@@ -21,6 +21,8 @@ import { EscalateDialog } from "./EscalateDialog.tsx";
 import { LeadDialog } from "./LeadDialog.tsx";
 import { LeadReviewDialog } from "./LeadReviewDialog.tsx";
 import { LeadStatusStepper } from "./LeadStatusStepper.tsx";
+import { MarkColdDialog } from "./MarkColdDialog.tsx";
+import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -54,12 +56,13 @@ export function LeadDetailView({
   const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
-  const [reviewKind, setReviewKind] = useState<"technical" | "financial" | null>(
-    null,
-  );
+  const [reviewKind, setReviewKind] = useState<
+    "technical" | "financial" | null
+  >(null);
   const [taggingTemp, setTaggingTemp] = useState(false);
-  const [markingCold, setMarkingCold] = useState(false);
+  const [markColdOpen, setMarkColdOpen] = useState(false);
   const [converting, setConverting] = useState(false);
+  const [reversing, setReversing] = useState(false);
 
   async function refresh() {
     const [leadResult, companiesResult, contactsResult, techLeadsResult] =
@@ -90,16 +93,10 @@ export function LeadDetailView({
     if (!lead) return;
     setTaggingTemp(true);
     const next = lead.temperature === temperature ? null : temperature;
-    const result = await tagLeadTemperature({ data: { leadId, temperature: next } });
+    const result = await tagLeadTemperature({
+      data: { leadId, temperature: next },
+    });
     setTaggingTemp(false);
-    if (result.success) refresh();
-    else setError(result.message);
-  }
-
-  async function handleMarkCold() {
-    setMarkingCold(true);
-    const result = await markLeadCold({ data: { leadId } });
-    setMarkingCold(false);
     if (result.success) refresh();
     else setError(result.message);
   }
@@ -116,6 +113,17 @@ export function LeadDetailView({
       to: "/workspace/$workspaceId/deals/$dealId",
       params: { workspaceId, dealId: result.dealId },
     });
+  }
+
+  async function handleReverse() {
+    if (!confirm("Reverse this lead back one step in the approval workflow?")) {
+      return;
+    }
+    setReversing(true);
+    const result = await reverseLeadStatus({ data: { leadId } });
+    setReversing(false);
+    if (result.success) refresh();
+    else setError(result.message);
   }
 
   if (!lead) {
@@ -140,7 +148,8 @@ export function LeadDetailView({
     currentUserRole === "sales_manager" &&
     lead.status === "new" &&
     lead.temperature === "hot";
-  const canMarkCold = currentUserRole === "sales_manager" && lead.status === "rejected";
+  const canMarkCold =
+    currentUserRole === "sales_manager" && lead.status === "rejected";
   const canReviewTech =
     currentUserRole === "tech_lead" &&
     lead.status === "escalated" &&
@@ -149,6 +158,8 @@ export function LeadDetailView({
     currentUserRole === "finance_lead" && lead.status === "tech_approved";
   const canConvert =
     currentUserRole === "sales_manager" && lead.status === "finance_approved";
+  const canReverse =
+    isAdmin && lead.status !== "new" && lead.status !== "converted";
 
   return (
     <div>
@@ -181,9 +192,7 @@ export function LeadDetailView({
             <Button onClick={() => setEscalateOpen(true)}>Escalate</Button>
           ) : null}
           {canMarkCold ? (
-            <Button disabled={markingCold} onClick={handleMarkCold}>
-              Mark Cold
-            </Button>
+            <Button onClick={() => setMarkColdOpen(true)}>Mark Cold</Button>
           ) : null}
           {canReviewTech ? (
             <Button onClick={() => setReviewKind("technical")}>Review</Button>
@@ -194,6 +203,15 @@ export function LeadDetailView({
           {canConvert ? (
             <Button disabled={converting} onClick={handleConvert}>
               {converting ? "Converting..." : "Convert to Deal"}
+            </Button>
+          ) : null}
+          {canReverse ? (
+            <Button
+              variant="outline"
+              disabled={reversing}
+              onClick={handleReverse}
+            >
+              {reversing ? "Reversing..." : "Reverse Step"}
             </Button>
           ) : null}
         </div>
@@ -307,6 +325,8 @@ export function LeadDetailView({
         </div>
       </div>
 
+      <RemindersPanel leadId={leadId} />
+
       <LeadDialog
         open={editOpen}
         onOpenChange={setEditOpen}
@@ -333,9 +353,20 @@ export function LeadDetailView({
         kind={reviewKind ?? "technical"}
         onSubmit={(id, decision, notes) =>
           reviewKind === "technical"
-            ? reviewTechnicalFeasibility({ data: { leadId: id, decision, notes } })
-            : reviewFinancialViability({ data: { leadId: id, decision, notes } })
+            ? reviewTechnicalFeasibility({
+                data: { leadId: id, decision, notes },
+              })
+            : reviewFinancialViability({
+                data: { leadId: id, decision, notes },
+              })
         }
+        onSaved={refresh}
+      />
+
+      <MarkColdDialog
+        open={markColdOpen}
+        onOpenChange={setMarkColdOpen}
+        lead={lead}
         onSaved={refresh}
       />
     </div>
