@@ -55,9 +55,9 @@ export function DealDetailView({
   const [deal, setDeal] = useState<Deal | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [tab, setTab] = useState<"overview" | "activity" | "timeline">(
-    "overview",
-  );
+  const [tab, setTab] = useState<
+    "overview" | "activity" | "notes" | "timeline"
+  >("overview");
   const [editOpen, setEditOpen] = useState(false);
   const [closeLostOpen, setCloseLostOpen] = useState(false);
   const [closingWon, setClosingWon] = useState(false);
@@ -65,6 +65,8 @@ export function DealDetailView({
   const [logKind, setLogKind] = useState<Activity["kind"]>("call");
   const [logBody, setLogBody] = useState("");
   const [loggingActivity, setLoggingActivity] = useState(false);
+  const [noteBody, setNoteBody] = useState("");
+  const [addingNote, setAddingNote] = useState(false);
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(
     null,
   );
@@ -124,6 +126,22 @@ export function DealDetailView({
     setLoggingActivity(false);
     if (result.success) {
       setLogBody("");
+      refresh();
+    } else {
+      setError(result.message);
+    }
+  }
+
+  async function handleAddNote(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!noteBody.trim()) return;
+    setAddingNote(true);
+    const result = await logActivity({
+      data: { dealId, kind: "note", body: noteBody.trim() },
+    });
+    setAddingNote(false);
+    if (result.success) {
+      setNoteBody("");
       refresh();
     } else {
       setError(result.message);
@@ -251,6 +269,18 @@ export function DealDetailView({
         </button>
         <button
           type="button"
+          onClick={() => setTab("notes")}
+          className={
+            "px-3 py-2 text-sm font-medium " +
+            (tab === "notes"
+              ? "border-b-2 border-[var(--primary)] text-[var(--ink)]"
+              : "text-[var(--ink-soft)]")
+          }
+        >
+          Notes
+        </button>
+        <button
+          type="button"
           onClick={() => setTab("timeline")}
           className={
             "px-3 py-2 text-sm font-medium " +
@@ -262,6 +292,49 @@ export function DealDetailView({
           Timeline
         </button>
       </div>
+
+      {tab === "notes" ? (
+        <div className="mt-6">
+          <form
+            onSubmit={handleAddNote}
+            className="panel flex flex-col gap-3 rounded-2xl p-4"
+          >
+            <Textarea
+              value={noteBody}
+              onChange={(event) => setNoteBody(event.target.value)}
+              placeholder="Add a note…"
+            />
+            <Button
+              type="submit"
+              size="sm"
+              disabled={addingNote || !noteBody.trim()}
+              className="self-end"
+            >
+              Add Note
+            </Button>
+          </form>
+
+          <div className="mt-4 flex flex-col gap-3">
+            {activities.filter((a) => a.kind === "note").length === 0 ? (
+              <p className="text-sm text-[var(--ink-soft)]">No notes yet.</p>
+            ) : (
+              activities
+                .filter((a) => a.kind === "note")
+                .map((note) => (
+                  <div key={note.id} className="panel rounded-xl p-4">
+                    <p className="whitespace-pre-wrap text-sm text-[var(--ink)]">
+                      {note.body}
+                    </p>
+                    <p className="mt-2 text-xs text-[var(--ink-soft)]">
+                      {note.authorName ?? "—"} ·{" "}
+                      {formatRelativeTime(note.createdAt)}
+                    </p>
+                  </div>
+                ))
+            )}
+          </div>
+        </div>
+      ) : null}
 
       {tab === "timeline" ? (
         <div className="panel mt-6 rounded-2xl p-6">
