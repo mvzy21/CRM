@@ -21,6 +21,7 @@ import {
   logActivity,
   moveDealStage,
 } from "#/lib/supabase/deals.ts";
+import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { DealEditDialog } from "./DealEditDialog.tsx";
 import { DealStageStepper } from "./DealStageStepper.tsx";
@@ -250,7 +251,11 @@ export function DealDetailView({
             </p>
           </div>
         </div>
-      ) : (
+      ) : null}
+
+      {tab === "overview" ? <RemindersPanel dealId={dealId} /> : null}
+
+      {tab === "activity" ? (
         <div className="mt-6">
           <form
             onSubmit={handleLogActivity}
@@ -270,7 +275,11 @@ export function DealDetailView({
                   <SelectItem value="note">Note</SelectItem>
                 </SelectContent>
               </Select>
-              <Button type="submit" size="sm" disabled={loggingActivity || !logBody.trim()}>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={loggingActivity || !logBody.trim()}
+              >
                 Log
               </Button>
             </div>
@@ -306,7 +315,7 @@ export function DealDetailView({
             )}
           </div>
         </div>
-      )}
+      ) : null}
 
       <DealEditDialog
         open={editOpen}

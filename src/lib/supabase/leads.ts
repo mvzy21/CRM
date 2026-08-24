@@ -377,7 +377,7 @@ export const reviewFinancialViability = createServerFn({ method: "POST" })
   });
 
 // US-13: Sales Manager acknowledges a rejection and marks the lead Cold.
-// (Scheduling a follow-up reminder is Phase 5 -- not yet available.)
+// The UI pairs this with createReminder() (US-19) to schedule a follow-up.
 const markLeadColdSchema = z.object({
   leadId: z.string().uuid(),
 });
@@ -411,6 +411,88 @@ export const markLeadCold = createServerFn({ method: "POST" })
     return { success: true };
   });
 
+// Admin override: step a lead back one stage in the approval workflow
+// (e.g. undo a finance approval back to tech_approved), clearing the
+// decision/notes for the stage being undone so it can be re-reviewed.
+// Not available for 'converted' (a Deal already exists) or 'new' (nothing
+// earlier to revert to).
+const reverseLeadStatusSchema = z.object({
+  leadId: z.string().uuid(),
+});
+
+export const reverseLeadStatus = createServerFn({ method: "POST" })
+  .validator(reverseLeadStatusSchema)
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireRole(["admin"]);
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: lead } = await check.supabase
+      .from("leads")
+      .select("status, tech_decision, finance_decision")
+      .eq("id", data.leadId)
+      .maybeSingle();
+
+    if (!lead) return { success: false, message: "Lead not found." };
+
+    let update: Record<string, unknown>;
+    switch (lead.status) {
+      case "escalated":
+        update = {
+          status: "new",
+          tech_lead_id: null,
+          tech_decision: null,
+          tech_notes: null,
+        };
+        break;
+      case "tech_approved":
+        update = { status: "escalated", tech_decision: null, tech_notes: null };
+        break;
+      case "finance_approved":
+        update = {
+          status: "tech_approved",
+          finance_lead_id: null,
+          finance_decision: null,
+          finance_notes: null,
+        };
+        break;
+      case "rejected":
+        update =
+          lead.finance_decision === "rejected"
+            ? {
+                status: "tech_approved",
+                finance_lead_id: null,
+                finance_decision: null,
+                finance_notes: null,
+              }
+            : {
+                status: "escalated",
+                tech_decision: null,
+                tech_notes: null,
+              };
+        break;
+      case "converted":
+        return {
+          success: false,
+          message: "Can't reverse a converted lead -- the Deal already exists.",
+        };
+      default:
+        return {
+          success: false,
+          message: "This lead is already at the earliest stage.",
+        };
+    }
+
+    const { error } = await check.supabase
+      .from("leads")
+      .update(update)
+      .eq("id", data.leadId);
+
+    if (error) {
+      return { success: false, message: "Failed to reverse lead status." };
+    }
+    return { success: true };
+  });
+
 // US-14: Sales Manager converts a finance-approved lead into a Deal.
 // The Deal keeps the original lead's owner (continuity for the rep who
 // worked the lead), not the converting Sales Manager.
@@ -420,56 +502,58 @@ const convertLeadSchema = z.object({
 
 export const convertLead = createServerFn({ method: "POST" })
   .validator(convertLeadSchema)
-  .handler(async ({
-    data,
-  }): Promise<
-    { success: true; dealId: string } | { success: false; message: string }
-  > => {
-    const check = await requireRole(["sales_manager"]);
-    if (!check.ok) return { success: false, message: check.message };
+  .handler(
+    async ({
+      data,
+    }): Promise<
+      { success: true; dealId: string } | { success: false; message: string }
+    > => {
+      const check = await requireRole(["sales_manager"]);
+      if (!check.ok) return { success: false, message: check.message };
 
-    const { data: lead } = await check.supabase
-      .from("leads")
-      .select("status, title, company_id, contact_id, owner_id")
-      .eq("id", data.leadId)
-      .maybeSingle();
+      const { data: lead } = await check.supabase
+        .from("leads")
+        .select("status, title, company_id, contact_id, owner_id")
+        .eq("id", data.leadId)
+        .maybeSingle();
 
-    if (!lead) return { success: false, message: "Lead not found." };
-    if (lead.status !== "finance_approved") {
-      return {
-        success: false,
-        message: "Only a finance-approved lead can be converted.",
-      };
-    }
+      if (!lead) return { success: false, message: "Lead not found." };
+      if (lead.status !== "finance_approved") {
+        return {
+          success: false,
+          message: "Only a finance-approved lead can be converted.",
+        };
+      }
 
-    const { data: deal, error: dealError } = await check.supabase
-      .from("deals")
-      .insert({
-        org_id: check.orgId,
-        lead_id: data.leadId,
-        company_id: lead.company_id,
-        contact_id: lead.contact_id,
-        owner_id: lead.owner_id,
-        title: lead.title,
-      })
-      .select("id")
-      .single();
+      const { data: deal, error: dealError } = await check.supabase
+        .from("deals")
+        .insert({
+          org_id: check.orgId,
+          lead_id: data.leadId,
+          company_id: lead.company_id,
+          contact_id: lead.contact_id,
+          owner_id: lead.owner_id,
+          title: lead.title,
+        })
+        .select("id")
+        .single();
 
-    if (dealError || !deal) {
-      return { success: false, message: "Failed to create deal." };
-    }
+      if (dealError || !deal) {
+        return { success: false, message: "Failed to create deal." };
+      }
 
-    const { error: leadError } = await check.supabase
-      .from("leads")
-      .update({ status: "converted" })
-      .eq("id", data.leadId);
+      const { error: leadError } = await check.supabase
+        .from("leads")
+        .update({ status: "converted" })
+        .eq("id", data.leadId);
 
-    if (leadError) {
-      return {
-        success: false,
-        message: "Deal created, but failed to mark the lead converted.",
-      };
-    }
+      if (leadError) {
+        return {
+          success: false,
+          message: "Deal created, but failed to mark the lead converted.",
+        };
+      }
 
-    return { success: true, dealId: deal.id };
-  });
+      return { success: true, dealId: deal.id };
+    },
+  );

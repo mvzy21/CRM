@@ -3,8 +3,16 @@ import { useEffect, useState } from "react";
 import { DealsPipelineChart } from "#/components/views/deals/DealsPipelineChart.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
-import { DEAL_STAGE_LABELS, type Deal, listDeals } from "#/lib/supabase/deals.ts";
+import {
+  DEAL_STAGE_LABELS,
+  type Deal,
+  listDeals,
+} from "#/lib/supabase/deals.ts";
 import { type Lead, listLeads } from "#/lib/supabase/leads.ts";
+import {
+  type Reminder,
+  listMyUpcomingReminders,
+} from "#/lib/supabase/reminders.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 
 interface WorkspaceViewProps {
@@ -32,15 +40,20 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
   const [contacts, setContacts] = useState<Contact[] | null>(null);
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [deals, setDeals] = useState<Deal[] | null>(null);
+  const [reminders, setReminders] = useState<Reminder[] | null>(null);
 
   useEffect(() => {
     listCompanies().then((r) => r.success && setCompanies(r.companies));
     listContacts().then((r) => r.success && setContacts(r.contacts));
     listLeads().then((r) => r.success && setLeads(r.leads));
     listDeals().then((r) => r.success && setDeals(r.deals));
+    listMyUpcomingReminders().then(
+      (r) => r.success && setReminders(r.reminders),
+    );
   }, []);
 
-  const openLeads = leads?.filter((l) => OPEN_LEAD_STATUSES.has(l.status)) ?? [];
+  const openLeads =
+    leads?.filter((l) => OPEN_LEAD_STATUSES.has(l.status)) ?? [];
   const openDeals = deals?.filter((d) => d.status === "open") ?? [];
 
   const stats = [
@@ -78,7 +91,51 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
 
       {deals && deals.length > 0 ? <DealsPipelineChart deals={deals} /> : null}
 
-      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
+        <div className="panel rounded-2xl p-6">
+          <h2 className="text-sm font-semibold text-[var(--ink)]">
+            My Reminders
+          </h2>
+          {reminders === null ? (
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">Loading…</p>
+          ) : reminders.length === 0 ? (
+            <p className="mt-3 text-sm text-[var(--ink-soft)]">
+              Nothing scheduled.
+            </p>
+          ) : (
+            <ul className="mt-3 divide-y divide-[var(--line)]">
+              {reminders.map((reminder) => (
+                <li key={reminder.id} className="py-2.5">
+                  {reminder.leadId ? (
+                    <Link
+                      to="/workspace/$workspaceId/leads/$leadId"
+                      params={{ workspaceId, leadId: reminder.leadId }}
+                      className="text-sm font-medium text-[var(--ink)] hover:underline"
+                    >
+                      {reminder.message}
+                    </Link>
+                  ) : reminder.dealId ? (
+                    <Link
+                      to="/workspace/$workspaceId/deals/$dealId"
+                      params={{ workspaceId, dealId: reminder.dealId }}
+                      className="text-sm font-medium text-[var(--ink)] hover:underline"
+                    >
+                      {reminder.message}
+                    </Link>
+                  ) : (
+                    <span className="text-sm font-medium text-[var(--ink)]">
+                      {reminder.message}
+                    </span>
+                  )}
+                  <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
+                    {formatRelativeTime(reminder.remindAt)}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
         <div className="panel rounded-2xl p-6">
           <h2 className="text-sm font-semibold text-[var(--ink)]">
             Recent Leads
@@ -90,7 +147,10 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
           ) : (
             <ul className="mt-3 divide-y divide-[var(--line)]">
               {recentLeads.map((lead) => (
-                <li key={lead.id} className="flex items-center justify-between py-2.5">
+                <li
+                  key={lead.id}
+                  className="flex items-center justify-between py-2.5"
+                >
                   <Link
                     to="/workspace/$workspaceId/leads/$leadId"
                     params={{ workspaceId, leadId: lead.id }}
@@ -120,7 +180,10 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
           ) : (
             <ul className="mt-3 divide-y divide-[var(--line)]">
               {recentDeals.map((deal) => (
-                <li key={deal.id} className="flex items-center justify-between py-2.5">
+                <li
+                  key={deal.id}
+                  className="flex items-center justify-between py-2.5"
+                >
                   <Link
                     to="/workspace/$workspaceId/deals/$dealId"
                     params={{ workspaceId, dealId: deal.id }}
@@ -129,7 +192,8 @@ export function WorkspaceView({ workspaceId }: WorkspaceViewProps) {
                     {deal.title}
                   </Link>
                   <span className="text-xs text-[var(--ink-soft)]">
-                    {DEAL_STAGE_LABELS[deal.stage]} · {formatRelativeTime(deal.createdAt)}
+                    {DEAL_STAGE_LABELS[deal.stage]} ·{" "}
+                    {formatRelativeTime(deal.createdAt)}
                   </span>
                 </li>
               ))}
