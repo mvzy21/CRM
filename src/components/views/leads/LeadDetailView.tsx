@@ -2,32 +2,32 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Flame, Snowflake } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
+import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
 import {
-  type Lead,
-  type UserOption,
   convertLead,
   getLead,
+  type Lead,
   listTechLeads,
   reverseLeadStatus,
   reviewFinancialViability,
   reviewTechnicalFeasibility,
   tagLeadTemperature,
+  type UserOption,
 } from "#/lib/supabase/leads.ts";
 import type { AppRole } from "#/lib/supabase/roles.ts";
+import {
+  listLeadTimeline,
+  type TimelineEvent,
+} from "#/lib/supabase/timeline.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { EscalateDialog } from "./EscalateDialog.tsx";
 import { LeadDialog } from "./LeadDialog.tsx";
 import { LeadReviewDialog } from "./LeadReviewDialog.tsx";
 import { LeadStatusStepper } from "./LeadStatusStepper.tsx";
 import { MarkColdDialog } from "./MarkColdDialog.tsx";
-import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
-import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
-import {
-  type TimelineEvent,
-  listLeadTimeline,
-} from "#/lib/supabase/timeline.ts";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",

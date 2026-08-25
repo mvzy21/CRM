@@ -3,8 +3,8 @@ import { useEffect, useState } from "react";
 import { DealsPipelineChart } from "#/components/views/deals/DealsPipelineChart.tsx";
 import { DEAL_STAGE_LABELS } from "#/lib/supabase/deals.ts";
 import {
-  type WorkspaceOverview,
   getWorkspaceOverview,
+  type WorkspaceOverview,
 } from "#/lib/supabase/overview.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 

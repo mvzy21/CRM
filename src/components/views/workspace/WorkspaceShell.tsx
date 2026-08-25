@@ -19,8 +19,8 @@ import { useEffect, useState } from "react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
 import { signOut } from "#/lib/supabase/auth.ts";
-import { type RailCounts, getRailCounts } from "#/lib/supabase/overview.ts";
-import { ROLE_LABELS, type AppRole } from "#/lib/supabase/roles.ts";
+import { getRailCounts, type RailCounts } from "#/lib/supabase/overview.ts";
+import { type AppRole, ROLE_LABELS } from "#/lib/supabase/roles.ts";
 
 interface WorkspaceShellProps {
   workspaceId: string;

@@ -1,8 +1,8 @@
 "use client";
 
 import { motion } from "motion/react";
-import { cn } from "#/lib/utils.ts";
 import { ShimmeringText } from "#/components/shimmering-text.tsx";
+import { cn } from "#/lib/utils.ts";
 import {
   LINE_LOADING_PULSE_EASE,
   LOADING_LABEL_EXIT_S,

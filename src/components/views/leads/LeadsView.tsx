@@ -4,7 +4,11 @@ import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
-import { type Lead, listLeads, tagLeadTemperature } from "#/lib/supabase/leads.ts";
+import {
+  type Lead,
+  listLeads,
+  tagLeadTemperature,
+} from "#/lib/supabase/leads.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { LeadDialog } from "./LeadDialog.tsx";
 
@@ -23,7 +27,11 @@ const STATUS_LABELS: Record<string, string> = {
   converted: "Converted",
 };
 
-export function LeadsView({ workspaceId, currentUserId, canCreate }: LeadsViewProps) {
+export function LeadsView({
+  workspaceId,
+  currentUserId,
+  canCreate,
+}: LeadsViewProps) {
   const [leads, setLeads] = useState<Lead[] | null>(null);
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
@@ -55,7 +63,8 @@ export function LeadsView({ workspaceId, currentUserId, canCreate }: LeadsViewPr
 
   async function handleTag(lead: Lead, temperature: "hot" | "cold") {
     setTaggingId(lead.id);
-    const nextTemperature = lead.temperature === temperature ? null : temperature;
+    const nextTemperature =
+      lead.temperature === temperature ? null : temperature;
     const result = await tagLeadTemperature({
       data: { leadId: lead.id, temperature: nextTemperature },
     });
@@ -110,19 +119,28 @@ export function LeadsView({ workspaceId, currentUserId, canCreate }: LeadsViewPr
           <tbody>
             {leads === null ? (
               <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-[var(--ink-soft)]">
+                <td
+                  colSpan={6}
+                  className="px-5 py-6 text-center text-[var(--ink-soft)]"
+                >
                   Loading leads&hellip;
                 </td>
               </tr>
             ) : leads.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-[var(--ink-soft)]">
+                <td
+                  colSpan={6}
+                  className="px-5 py-6 text-center text-[var(--ink-soft)]"
+                >
                   No leads yet.
                 </td>
               </tr>
             ) : (
               leads.map((lead) => (
-                <tr key={lead.id} className="border-b border-[var(--line)] last:border-0">
+                <tr
+                  key={lead.id}
+                  className="border-b border-[var(--line)] last:border-0"
+                >
                   <td className="px-5 py-3 font-medium text-[var(--ink)]">
                     <Link
                       to="/workspace/$workspaceId/leads/$leadId"
@@ -146,7 +164,9 @@ export function LeadsView({ workspaceId, currentUserId, canCreate }: LeadsViewPr
                       <div className="flex items-center gap-1.5">
                         <Button
                           size="sm"
-                          variant={lead.temperature === "hot" ? "default" : "outline"}
+                          variant={
+                            lead.temperature === "hot" ? "default" : "outline"
+                          }
                           disabled={taggingId === lead.id}
                           onClick={() => handleTag(lead, "hot")}
                           aria-label="Tag hot"
@@ -155,7 +175,9 @@ export function LeadsView({ workspaceId, currentUserId, canCreate }: LeadsViewPr
                         </Button>
                         <Button
                           size="sm"
-                          variant={lead.temperature === "cold" ? "default" : "outline"}
+                          variant={
+                            lead.temperature === "cold" ? "default" : "outline"
+                          }
                           disabled={taggingId === lead.id}
                           onClick={() => handleTag(lead, "cold")}
                           aria-label="Tag cold"

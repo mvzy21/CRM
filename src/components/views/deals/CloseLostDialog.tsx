@@ -10,7 +10,7 @@ import {
 } from "#/components/ui/dialog.tsx";
 import { Label } from "#/components/ui/label.tsx";
 import { Textarea } from "#/components/ui/textarea.tsx";
-import { type Deal, closeDealLost } from "#/lib/supabase/deals.ts";
+import { closeDealLost, type Deal } from "#/lib/supabase/deals.ts";
 
 interface CloseLostDialogProps {
   open: boolean;

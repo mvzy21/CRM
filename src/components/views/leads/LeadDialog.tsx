@@ -20,7 +20,7 @@ import {
 import { Textarea } from "#/components/ui/textarea.tsx";
 import type { Company } from "#/lib/supabase/companies.ts";
 import type { Contact } from "#/lib/supabase/contacts.ts";
-import { type Lead, createLead, updateLead } from "#/lib/supabase/leads.ts";
+import { createLead, type Lead, updateLead } from "#/lib/supabase/leads.ts";
 
 interface LeadDialogProps {
   open: boolean;
@@ -70,7 +70,9 @@ export function LeadDialog({
             contactId,
           },
         })
-      : await createLead({ data: { title, description, companyId, contactId } });
+      : await createLead({
+          data: { title, description, companyId, contactId },
+        });
 
     setSubmitting(false);
 

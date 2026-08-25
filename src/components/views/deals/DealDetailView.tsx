@@ -10,23 +10,23 @@ import {
   SelectValue,
 } from "#/components/ui/select.tsx";
 import { Textarea } from "#/components/ui/textarea.tsx";
+import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
+import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
 import {
   type Activity,
-  DEAL_STAGES,
+  closeDealWon,
   DEAL_STAGE_LABELS,
+  DEAL_STAGES,
   type Deal,
   type DealStage,
-  closeDealWon,
   getDeal,
   listActivities,
   logActivity,
   moveDealStage,
 } from "#/lib/supabase/deals.ts";
-import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
-import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
 import {
-  type TimelineEvent,
   listDealTimeline,
+  type TimelineEvent,
 } from "#/lib/supabase/timeline.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { CloseLostDialog } from "./CloseLostDialog.tsx";

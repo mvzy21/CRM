@@ -1,6 +1,9 @@
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { establishSessionFromTokens, verifyInvite } from "#/lib/supabase/auth.ts";
+import {
+  establishSessionFromTokens,
+  verifyEmailToken,
+} from "#/lib/supabase/auth.ts";
 
 interface InviteSearch {
   token_hash?: string;
@@ -9,7 +12,8 @@ interface InviteSearch {
 
 export const Route = createFileRoute("/invite")({
   validateSearch: (search: Record<string, unknown>): InviteSearch => ({
-    token_hash: typeof search.token_hash === "string" ? search.token_hash : undefined,
+    token_hash:
+      typeof search.token_hash === "string" ? search.token_hash : undefined,
     type: typeof search.type === "string" ? search.type : undefined,
   }),
   beforeLoad: async ({ search }) => {
@@ -18,7 +22,9 @@ export const Route = createFileRoute("/invite")({
     // redirects here with tokens in the URL hash, which only the
     // client-side component below can read.
     if (search.token_hash && search.type === "invite") {
-      const result = await verifyInvite({ data: { tokenHash: search.token_hash } });
+      const result = await verifyEmailToken({
+        data: { tokenHash: search.token_hash, type: "invite" },
+      });
       throw redirect(
         result.success
           ? { to: "/set-password" }
@@ -58,7 +64,9 @@ function InviteCallback() {
 
   return (
     <main className="flex min-h-screen items-center justify-center">
-      <p className="text-sm text-[var(--ink-soft)]">Confirming your invite...</p>
+      <p className="text-sm text-[var(--ink-soft)]">
+        Confirming your invite...
+      </p>
     </main>
   );
 }

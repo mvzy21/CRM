@@ -1,6 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { DEAL_STAGE_LABELS, type Deal, listDeals } from "#/lib/supabase/deals.ts";
+import {
+  DEAL_STAGE_LABELS,
+  type Deal,
+  listDeals,
+} from "#/lib/supabase/deals.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
 import { DealsPipelineChart } from "./DealsPipelineChart.tsx";
 
@@ -35,8 +39,8 @@ export function DealsView({ workspaceId }: DealsViewProps) {
           Deals
         </h1>
         <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
-          Deals are created by converting a finance-approved lead. Click a
-          deal to view details and move it through the pipeline.
+          Deals are created by converting a finance-approved lead. Click a deal
+          to view details and move it through the pipeline.
         </p>
       </div>
 
@@ -66,19 +70,28 @@ export function DealsView({ workspaceId }: DealsViewProps) {
           <tbody>
             {deals === null ? (
               <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-[var(--ink-soft)]">
+                <td
+                  colSpan={6}
+                  className="px-5 py-6 text-center text-[var(--ink-soft)]"
+                >
                   Loading deals&hellip;
                 </td>
               </tr>
             ) : deals.length === 0 ? (
               <tr>
-                <td colSpan={6} className="px-5 py-6 text-center text-[var(--ink-soft)]">
+                <td
+                  colSpan={6}
+                  className="px-5 py-6 text-center text-[var(--ink-soft)]"
+                >
                   No deals yet -- convert a finance-approved lead to create one.
                 </td>
               </tr>
             ) : (
               deals.map((deal) => (
-                <tr key={deal.id} className="border-b border-[var(--line)] last:border-0">
+                <tr
+                  key={deal.id}
+                  className="border-b border-[var(--line)] last:border-0"
+                >
                   <td className="px-5 py-3 font-medium text-[var(--ink)]">
                     <Link
                       to="/workspace/$workspaceId/deals/$dealId"

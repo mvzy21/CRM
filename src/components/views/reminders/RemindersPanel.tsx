@@ -3,9 +3,9 @@ import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import {
-  type Reminder,
   createReminder,
   listReminders,
+  type Reminder,
   setReminderDone,
 } from "#/lib/supabase/reminders.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";

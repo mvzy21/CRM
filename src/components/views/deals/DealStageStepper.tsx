@@ -1,4 +1,8 @@
-import { DEAL_STAGES, DEAL_STAGE_LABELS, type DealStage } from "#/lib/supabase/deals.ts";
+import {
+  DEAL_STAGE_LABELS,
+  DEAL_STAGES,
+  type DealStage,
+} from "#/lib/supabase/deals.ts";
 
 interface DealStageStepperProps {
   stage: DealStage;

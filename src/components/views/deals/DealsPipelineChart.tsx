@@ -1,7 +1,7 @@
 import { FunnelChart } from "#/components/charts/funnel-chart.tsx";
 import {
-  DEAL_STAGES,
   DEAL_STAGE_LABELS,
+  DEAL_STAGES,
   type DealStage,
   type DealStatus,
 } from "#/lib/supabase/deals.ts";

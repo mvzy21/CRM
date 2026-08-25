@@ -1,4 +1,5 @@
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { createServerSupabaseClient } from "./server.ts";
 
@@ -61,23 +62,29 @@ export const signInWithPassword = createServerFn({ method: "POST" })
     return { success: true as const };
   });
 
-const verifyInviteSchema = z.object({
+const verifyEmailTokenSchema = z.object({
   tokenHash: z.string().min(1),
+  type: z.enum(["invite", "recovery"]),
 });
 
-export const verifyInvite = createServerFn({ method: "POST" })
-  .validator(verifyInviteSchema)
+/**
+ * Exchanges a one-time email token for a session. Invites and password
+ * recovery are the same handshake with a different `type`, so they share one
+ * server function rather than two near-identical ones.
+ */
+export const verifyEmailToken = createServerFn({ method: "POST" })
+  .validator(verifyEmailTokenSchema)
   .handler(async ({ data }) => {
     const supabase = createServerSupabaseClient();
     const { error } = await supabase.auth.verifyOtp({
       token_hash: data.tokenHash,
-      type: "invite",
+      type: data.type,
     });
 
     if (error) {
       return {
         success: false as const,
-        message: "This invite link is invalid or has expired.",
+        message: "This link is invalid or has expired.",
       };
     }
 
@@ -101,7 +108,7 @@ export const establishSessionFromTokens = createServerFn({ method: "POST" })
     if (error) {
       return {
         success: false as const,
-        message: "This invite link is invalid or has expired.",
+        message: "This link is invalid or has expired.",
       };
     }
 
@@ -126,7 +133,8 @@ export const setPassword = createServerFn({ method: "POST" })
     if (!user) {
       return {
         success: false as const,
-        message: "Your session has expired. Please use your invite link again.",
+        message:
+          "Your session has expired. Please use the link from your email again.",
       };
     }
 
@@ -136,6 +144,45 @@ export const setPassword = createServerFn({ method: "POST" })
 
     if (error) {
       return { success: false as const, message: "Failed to set password." };
+    }
+
+    return { success: true as const };
+  });
+
+const requestPasswordResetSchema = z.object({
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .min(1, "Email is required")
+    .email("Enter a valid email address")
+    .max(254),
+});
+
+function resetRedirectUrl() {
+  const request = getRequest();
+  return `${new URL(request.url).origin}/reset-password`;
+}
+
+/**
+ * Sends a recovery email. Reports success identically whether or not the
+ * address has an account -- a "no such user" response would turn this form
+ * into an account-enumeration oracle. Rate limiting is the one failure worth
+ * surfacing, since otherwise the user waits on an email that was never sent.
+ */
+export const requestPasswordReset = createServerFn({ method: "POST" })
+  .validator(requestPasswordResetSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
+      redirectTo: resetRedirectUrl(),
+    });
+
+    if (error?.status === 429) {
+      return {
+        success: false as const,
+        message: "Too many requests. Please wait a moment and try again.",
+      };
     }
 
     return { success: true as const };

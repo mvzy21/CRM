@@ -61,7 +61,8 @@ export function LeadReviewDialog({
     onSaved();
   }
 
-  const label = kind === "technical" ? "technical feasibility" : "financial viability";
+  const label =
+    kind === "technical" ? "technical feasibility" : "financial viability";
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>

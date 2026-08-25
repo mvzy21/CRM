@@ -16,7 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "#/components/ui/select.tsx";
-import { type Lead, type UserOption, escalateLead } from "#/lib/supabase/leads.ts";
+import {
+  escalateLead,
+  type Lead,
+  type UserOption,
+} from "#/lib/supabase/leads.ts";
 
 interface EscalateDialogProps {
   open: boolean;
@@ -47,7 +51,9 @@ export function EscalateDialog({
     if (!lead || !techLeadId) return;
     setError(null);
     setSubmitting(true);
-    const result = await escalateLead({ data: { leadId: lead.id, techLeadId } });
+    const result = await escalateLead({
+      data: { leadId: lead.id, techLeadId },
+    });
     setSubmitting(false);
 
     if (!result.success) {
@@ -79,7 +85,10 @@ export function EscalateDialog({
                 value={techLeadId ?? undefined}
                 onValueChange={(value) => setTechLeadId(value)}
               >
-                <SelectTrigger id="escalate-tech-lead" className="mt-1.5 w-full">
+                <SelectTrigger
+                  id="escalate-tech-lead"
+                  className="mt-1.5 w-full"
+                >
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>

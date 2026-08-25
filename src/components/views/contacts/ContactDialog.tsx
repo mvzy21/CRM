@@ -85,8 +85,8 @@ export function ContactDialog({
             {editingContact ? "Edit contact" : "Add a contact"}
           </DialogTitle>
           <DialogDescription>
-            Contacts are linked to a company so you can find everyone tied to
-            an account.
+            Contacts are linked to a company so you can find everyone tied to an
+            account.
           </DialogDescription>
         </DialogHeader>
 

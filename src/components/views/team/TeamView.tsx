@@ -395,7 +395,9 @@ export function TeamView({ currentUserId }: TeamViewProps) {
             <DialogTitle>Delete user</DialogTitle>
             <DialogDescription>
               This permanently deletes{" "}
-              <strong>{deleteTarget?.displayName ?? deleteTarget?.email}</strong>
+              <strong>
+                {deleteTarget?.displayName ?? deleteTarget?.email}
+              </strong>
               's account and access. This can't be undone.
             </DialogDescription>
           </DialogHeader>
