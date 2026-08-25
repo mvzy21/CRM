@@ -91,6 +91,34 @@ export const verifyEmailToken = createServerFn({ method: "POST" })
     return { success: true as const };
   });
 
+const exchangeAuthCodeSchema = z.object({
+  code: z.string().min(1),
+});
+
+/**
+ * Completes a PKCE code exchange. The server Supabase client
+ * (`@supabase/ssr`) defaults to `flowType: "pkce"`, so any email link
+ * generated from a server-issued request -- like our password reset --
+ * carries a `?code=` param rather than the `token_hash` the admin client's
+ * invite emails use. Exchanging it needs the code_verifier cookie that was
+ * set on this same browser when the reset was requested.
+ */
+export const exchangeAuthCode = createServerFn({ method: "POST" })
+  .validator(exchangeAuthCodeSchema)
+  .handler(async ({ data }) => {
+    const supabase = createServerSupabaseClient();
+    const { error } = await supabase.auth.exchangeCodeForSession(data.code);
+
+    if (error) {
+      return {
+        success: false as const,
+        message: "This link is invalid or has expired.",
+      };
+    }
+
+    return { success: true as const };
+  });
+
 const establishSessionSchema = z.object({
   accessToken: z.string().min(1),
   refreshToken: z.string().min(1),
