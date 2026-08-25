@@ -14,6 +14,7 @@ function DealDetailRoute() {
       dealId={dealId}
       currentUserId={profile.id}
       isAdmin={profile.role === "admin"}
+      isSalesManager={profile.role === "sales_manager"}
     />
   );
 }

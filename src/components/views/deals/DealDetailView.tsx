@@ -38,6 +38,7 @@ interface DealDetailViewProps {
   dealId: string;
   currentUserId: string;
   isAdmin: boolean;
+  isSalesManager: boolean;
 }
 
 const ACTIVITY_KIND_LABELS: Record<Activity["kind"], string> = {
@@ -51,6 +52,7 @@ export function DealDetailView({
   dealId,
   currentUserId,
   isAdmin,
+  isSalesManager,
 }: DealDetailViewProps) {
   const [deal, setDeal] = useState<Deal | null>(null);
   const [activities, setActivities] = useState<Activity[]>([]);
@@ -165,7 +167,7 @@ export function DealDetailView({
     );
   }
 
-  const canEdit = isAdmin || deal.ownerId === currentUserId;
+  const canEdit = isAdmin || isSalesManager || deal.ownerId === currentUserId;
   const canClose = canEdit && deal.status === "open";
 
   return (
