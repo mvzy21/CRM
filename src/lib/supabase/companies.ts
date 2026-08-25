@@ -62,6 +62,27 @@ export const createCompany = createServerFn({ method: "POST" })
     const check = await requireRole(["sales_rep"]);
     if (!check.ok) return { success: false, message: check.message };
 
+    // Case/whitespace-insensitive dupe check, scoped to the org -- "Acme"
+    // and " acme " shouldn't both end up as separate rows.
+    const { data: existing, error: lookupError } = await check.supabase
+      .from("companies")
+      .select("id, name")
+      .eq("org_id", check.orgId);
+
+    if (lookupError) {
+      return { success: false, message: "Failed to create company." };
+    }
+
+    const normalizedName = data.name.trim().toLowerCase();
+    if (
+      existing.some((row) => row.name.trim().toLowerCase() === normalizedName)
+    ) {
+      return {
+        success: false,
+        message: `A company named "${data.name.trim()}" already exists.`,
+      };
+    }
+
     const { error } = await check.supabase.from("companies").insert({
       name: data.name,
       industry: data.industry || null,
@@ -84,6 +105,26 @@ export const updateCompany = createServerFn({ method: "POST" })
   .handler(async ({ data }): Promise<ActionResult> => {
     const check = await requireAuth();
     if (!check.ok) return { success: false, message: check.message };
+
+    const { data: existing, error: lookupError } = await check.supabase
+      .from("companies")
+      .select("id, name")
+      .eq("org_id", check.orgId)
+      .neq("id", data.companyId);
+
+    if (lookupError) {
+      return { success: false, message: "Failed to update company." };
+    }
+
+    const normalizedName = data.name.trim().toLowerCase();
+    if (
+      existing.some((row) => row.name.trim().toLowerCase() === normalizedName)
+    ) {
+      return {
+        success: false,
+        message: `A company named "${data.name.trim()}" already exists.`,
+      };
+    }
 
     const { data: updated, error } = await check.supabase
       .from("companies")
