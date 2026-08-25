@@ -1,7 +1,10 @@
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
 import { z } from "zod";
-import { createServerSupabaseClient } from "./server.ts";
+import {
+  createEmailLinkSupabaseClient,
+  createServerSupabaseClient,
+} from "./server.ts";
 
 export const signInSchema = z.object({
   email: z
@@ -201,7 +204,7 @@ function resetRedirectUrl() {
 export const requestPasswordReset = createServerFn({ method: "POST" })
   .validator(requestPasswordResetSchema)
   .handler(async ({ data }) => {
-    const supabase = createServerSupabaseClient();
+    const supabase = createEmailLinkSupabaseClient();
     const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
       redirectTo: resetRedirectUrl(),
     });
