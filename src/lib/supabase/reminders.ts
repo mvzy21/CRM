@@ -116,6 +116,10 @@ const createReminderSchema = z
   })
   .refine((val) => Boolean(val.leadId) !== Boolean(val.dealId), {
     message: "A reminder must be attached to exactly one lead or deal.",
+  })
+  .refine((val) => new Date(val.remindAt).getTime() > Date.now(), {
+    message: "Reminder time must be in the future.",
+    path: ["remindAt"],
   });
 
 export const createReminder = createServerFn({ method: "POST" })

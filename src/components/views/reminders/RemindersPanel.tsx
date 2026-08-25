@@ -15,12 +15,22 @@ interface RemindersPanelProps {
   dealId?: string;
 }
 
+function toLocalInputValue(d: Date): string {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
 function defaultRemindAt(): string {
   const d = new Date();
   d.setDate(d.getDate() + 1);
   d.setHours(9, 0, 0, 0);
-  const pad = (n: number) => String(n).padStart(2, "0");
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  return toLocalInputValue(d);
+}
+
+// Floors to the current minute so the picker can't be opened to a moment
+// that's already past by the time the user submits.
+function minRemindAt(): string {
+  return toLocalInputValue(new Date());
 }
 
 export function RemindersPanel({ leadId, dealId }: RemindersPanelProps) {
@@ -42,6 +52,10 @@ export function RemindersPanel({ leadId, dealId }: RemindersPanelProps) {
 
   async function handleAdd() {
     if (!message.trim()) return;
+    if (new Date(remindAt).getTime() <= Date.now()) {
+      setError("Reminder time must be in the future.");
+      return;
+    }
     setError(null);
     setSubmitting(true);
     const result = await createReminder({
@@ -123,6 +137,7 @@ export function RemindersPanel({ leadId, dealId }: RemindersPanelProps) {
         <Input
           type="datetime-local"
           value={remindAt}
+          min={minRemindAt()}
           onChange={(e) => setRemindAt(e.target.value)}
           className="sm:w-52"
         />
