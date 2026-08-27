@@ -246,11 +246,19 @@ export const getServerProfile = createServerFn({ method: "GET" }).handler(
 
     const { data: profile } = await supabase
       .from("profiles")
-      .select("role, display_name, team_id")
+      .select("role, display_name, team_id, is_active")
       .eq("id", user.id)
       .single();
 
     if (!profile) return null;
+
+    if (!profile.is_active) {
+      // Mirrors the check in requireAuth() (access.ts) -- a deactivated
+      // user's existing session is otherwise still valid, so this is what
+      // actually kicks them out of the workspace on their next navigation.
+      await supabase.auth.signOut();
+      return null;
+    }
 
     return {
       id: user.id,

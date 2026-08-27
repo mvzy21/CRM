@@ -261,6 +261,67 @@ export const listTechLeads = createServerFn({ method: "GET" }).handler(
   },
 );
 
+export const listSalesReps = createServerFn({ method: "GET" }).handler(
+  async (): Promise<
+    { success: true; users: UserOption[] } | { success: false; message: string }
+  > => {
+    const check = await requireAuth();
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data, error } = await check.supabase
+      .from("profiles")
+      .select("id, display_name, email")
+      .eq("role", "sales_rep")
+      .eq("is_active", true);
+
+    if (error) return { success: false, message: "Failed to load sales reps." };
+    return {
+      success: true,
+      users: data.map((u) => ({
+        id: u.id,
+        displayName: u.display_name,
+        email: u.email,
+      })),
+    };
+  },
+);
+
+// US-07: Admin reassigns a lead to a different Sales Rep. Relies on the
+// unrestricted Admin branch of leads_update_owner_or_admin (rls-policies.sql)
+// -- no schema change needed, since Admin can already write any column on
+// any lead regardless of status.
+const reassignLeadOwnerSchema = z.object({
+  leadId: z.string().uuid(),
+  newOwnerId: z.string().uuid(),
+});
+
+export const reassignLeadOwner = createServerFn({ method: "POST" })
+  .validator(reassignLeadOwnerSchema)
+  .handler(async ({ data }): Promise<ActionResult> => {
+    const check = await requireRole(["admin"]);
+    if (!check.ok) return { success: false, message: check.message };
+
+    const { data: updated, error } = await check.supabase
+      .from("leads")
+      .update({ owner_id: data.newOwnerId })
+      .eq("id", data.leadId)
+      .select("id")
+      .maybeSingle();
+
+    if (error) return { success: false, message: "Failed to reassign lead." };
+    if (!updated) return { success: false, message: "Lead not found." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: data.leadId,
+      summary: "Reassigned to a new owner",
+    });
+
+    return { success: true };
+  });
+
 // US-10: Sales Manager escalates a Hot lead to a specific Tech Lead.
 const escalateLeadSchema = z.object({
   leadId: z.string().uuid(),

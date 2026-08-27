@@ -90,7 +90,19 @@ export const createCompany = createServerFn({ method: "POST" })
       owner_id: check.userId,
     });
 
-    if (error) return { success: false, message: "Failed to create company." };
+    if (error) {
+      // Belt-and-braces against the lookup-then-insert race above: two
+      // concurrent creates can both pass the check, so the DB-level unique
+      // index (unique-name-per-org.sql) is the real backstop -- this turns
+      // its raw constraint violation into the same friendly message.
+      if (error.code === "23505") {
+        return {
+          success: false,
+          message: `A company named "${data.name.trim()}" already exists.`,
+        };
+      }
+      return { success: false, message: "Failed to create company." };
+    }
     return { success: true };
   });
 
@@ -133,7 +145,15 @@ export const updateCompany = createServerFn({ method: "POST" })
       .select("id")
       .maybeSingle();
 
-    if (error) return { success: false, message: "Failed to update company." };
+    if (error) {
+      if (error.code === "23505") {
+        return {
+          success: false,
+          message: `A company named "${data.name.trim()}" already exists.`,
+        };
+      }
+      return { success: false, message: "Failed to update company." };
+    }
     if (!updated) {
       return {
         success: false,

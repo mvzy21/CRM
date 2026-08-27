@@ -21,11 +21,24 @@ export async function requireAuth(): Promise<AuthCheck> {
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("role, org_id")
+    .select("role, org_id, is_active")
     .eq("id", user.id)
     .single();
 
   if (!profile) return { ok: false, message: "Not authenticated." };
+
+  if (!profile.is_active) {
+    // Deactivating a user (US-22) only flips a column -- it doesn't revoke
+    // an already-issued session token. Without this check, a deactivated
+    // user keeps full access through every server function until they
+    // happen to sign out. Sign them out here so the next request/redirect
+    // actually lands them back at the login screen.
+    await supabase.auth.signOut();
+    return {
+      ok: false,
+      message: "This account has been deactivated. Contact your administrator.",
+    };
+  }
 
   return {
     ok: true,

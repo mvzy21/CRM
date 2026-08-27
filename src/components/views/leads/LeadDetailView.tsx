@@ -10,6 +10,7 @@ import {
   convertLead,
   getLead,
   type Lead,
+  listSalesReps,
   listTechLeads,
   reverseLeadStatus,
   reviewFinancialViability,
@@ -28,6 +29,7 @@ import { LeadDialog } from "./LeadDialog.tsx";
 import { LeadReviewDialog } from "./LeadReviewDialog.tsx";
 import { LeadStatusStepper } from "./LeadStatusStepper.tsx";
 import { MarkColdDialog } from "./MarkColdDialog.tsx";
+import { ReassignOwnerDialog } from "./ReassignOwnerDialog.tsx";
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -58,8 +60,10 @@ export function LeadDetailView({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [techLeads, setTechLeads] = useState<UserOption[]>([]);
+  const [salesReps, setSalesReps] = useState<UserOption[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [reassignOpen, setReassignOpen] = useState(false);
   const [escalateOpen, setEscalateOpen] = useState(false);
   const [reviewKind, setReviewKind] = useState<
     "technical" | "financial" | null
@@ -78,12 +82,14 @@ export function LeadDetailView({
       companiesResult,
       contactsResult,
       techLeadsResult,
+      salesRepsResult,
       timelineResult,
     ] = await Promise.all([
       getLead({ data: { leadId } }),
       listCompanies(),
       listContacts(),
       listTechLeads(),
+      listSalesReps(),
       listLeadTimeline({ data: { leadId } }),
     ]);
 
@@ -96,6 +102,7 @@ export function LeadDetailView({
     if (companiesResult.success) setCompanies(companiesResult.companies);
     if (contactsResult.success) setContacts(contactsResult.contacts);
     if (techLeadsResult.success) setTechLeads(techLeadsResult.users);
+    if (salesRepsResult.success) setSalesReps(salesRepsResult.users);
     if (timelineResult.success) setTimelineEvents(timelineResult.events);
   }
 
@@ -203,6 +210,11 @@ export function LeadDetailView({
               Edit
             </Button>
           ) : null}
+          {isAdmin ? (
+            <Button variant="outline" onClick={() => setReassignOpen(true)}>
+              Reassign Owner
+            </Button>
+          ) : null}
           {canEscalate ? (
             <Button onClick={() => setEscalateOpen(true)}>Escalate</Button>
           ) : null}
@@ -234,6 +246,14 @@ export function LeadDetailView({
 
       <div className="mt-6">
         <LeadStatusStepper status={lead.status} />
+        {currentUserRole === "sales_manager" &&
+        lead.status !== "finance_approved" &&
+        lead.status !== "converted" ? (
+          <p className="mt-2 text-xs text-[var(--ink-soft)]">
+            Convert to Deal becomes available once this lead is Finance
+            Approved.
+          </p>
+        ) : null}
       </div>
 
       {error ? (
@@ -357,6 +377,14 @@ export function LeadDetailView({
         companies={companies}
         contacts={contacts}
         editingLead={lead}
+        onSaved={refresh}
+      />
+
+      <ReassignOwnerDialog
+        open={reassignOpen}
+        onOpenChange={setReassignOpen}
+        lead={lead}
+        salesReps={salesReps}
         onSaved={refresh}
       />
 
