@@ -14,14 +14,16 @@ import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx"
 import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
 import {
   type Activity,
+  listActivities,
+  logActivity,
+} from "#/lib/supabase/activities.ts";
+import {
   closeDealWon,
   DEAL_STAGE_LABELS,
   DEAL_STAGES,
   type Deal,
   type DealStage,
   getDeal,
-  listActivities,
-  logActivity,
   moveDealStage,
 } from "#/lib/supabase/deals.ts";
 import {

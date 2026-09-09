@@ -10,12 +10,18 @@ export interface Lead {
   id: string;
   title: string;
   description: string | null;
+  budget: number | null;
+  requirements: string | null;
+  expectedCloseDate: string | null;
   temperature: LeadTemperature;
   status: string;
   companyId: string | null;
   companyName: string | null;
+  companyIndustry: string | null;
   contactId: string | null;
   contactName: string | null;
+  contactEmail: string | null;
+  contactPhone: string | null;
   ownerId: string | null;
   ownerName: string | null;
   techLeadId: string | null;
@@ -32,9 +38,11 @@ export interface Lead {
 type ActionResult = { success: true } | { success: false; message: string };
 
 const leadSelect =
-  "id, title, description, temperature, status, company_id, contact_id, owner_id, " +
+  "id, title, description, budget, requirements, expected_close_date, " +
+  "temperature, status, company_id, contact_id, owner_id, " +
   "tech_lead_id, tech_decision, tech_notes, finance_lead_id, finance_decision, finance_notes, created_at, " +
-  "company:companies!company_id(id, name), contact:contacts!contact_id(id, name), " +
+  "company:companies!company_id(id, name, industry), " +
+  "contact:contacts!contact_id(id, name, email, phone), " +
   "owner:profiles!owner_id(display_name, email), " +
   "tech_lead:profiles!tech_lead_id(display_name, email), " +
   "finance_lead:profiles!finance_lead_id(display_name, email)";
@@ -43,6 +51,9 @@ interface LeadRow {
   id: string;
   title: string;
   description: string | null;
+  budget: number | null;
+  requirements: string | null;
+  expected_close_date: string | null;
   temperature: LeadTemperature;
   status: string;
   company_id: string | null;
@@ -55,8 +66,13 @@ interface LeadRow {
   finance_decision: ReviewDecision;
   finance_notes: string | null;
   created_at: string;
-  company: { id: string; name: string } | null;
-  contact: { id: string; name: string } | null;
+  company: { id: string; name: string; industry: string | null } | null;
+  contact: {
+    id: string;
+    name: string;
+    email: string | null;
+    phone: string | null;
+  } | null;
   owner: { display_name: string | null; email: string | null } | null;
   tech_lead: { display_name: string | null; email: string | null } | null;
   finance_lead: { display_name: string | null; email: string | null } | null;
@@ -67,12 +83,18 @@ function mapLead(row: LeadRow): Lead {
     id: row.id,
     title: row.title,
     description: row.description,
+    budget: row.budget,
+    requirements: row.requirements,
+    expectedCloseDate: row.expected_close_date,
     temperature: row.temperature,
     status: row.status,
     companyId: row.company_id,
     companyName: row.company?.name ?? null,
+    companyIndustry: row.company?.industry ?? null,
     contactId: row.contact_id,
     contactName: row.contact?.name ?? null,
+    contactEmail: row.contact?.email ?? null,
+    contactPhone: row.contact?.phone ?? null,
     ownerId: row.owner_id,
     ownerName: row.owner?.display_name ?? row.owner?.email ?? null,
     techLeadId: row.tech_lead_id,
@@ -133,11 +155,18 @@ export const listLeads = createServerFn({ method: "GET" }).handler(
   },
 );
 
+const leadAssessmentFields = {
+  requirements: z.string().trim().max(4000).optional().or(z.literal("")),
+  budget: z.number().nonnegative().nullable().optional(),
+  expectedCloseDate: z.string().trim().max(10).optional().or(z.literal("")),
+};
+
 const createLeadSchema = z.object({
   title: z.string().trim().min(1, "Lead title is required").max(200),
   description: z.string().trim().max(2000).optional().or(z.literal("")),
   companyId: z.string().uuid().nullable(),
   contactId: z.string().uuid().nullable(),
+  ...leadAssessmentFields,
 });
 
 export const createLead = createServerFn({ method: "POST" })
@@ -149,6 +178,9 @@ export const createLead = createServerFn({ method: "POST" })
     const { error } = await check.supabase.from("leads").insert({
       title: data.title,
       description: data.description || null,
+      requirements: data.requirements || null,
+      budget: data.budget ?? null,
+      expected_close_date: data.expectedCloseDate || null,
       company_id: data.companyId,
       contact_id: data.contactId,
       org_id: check.orgId,
@@ -165,6 +197,7 @@ const updateLeadSchema = z.object({
   description: z.string().trim().max(2000).optional().or(z.literal("")),
   companyId: z.string().uuid().nullable(),
   contactId: z.string().uuid().nullable(),
+  ...leadAssessmentFields,
 });
 
 export const updateLead = createServerFn({ method: "POST" })
@@ -178,6 +211,9 @@ export const updateLead = createServerFn({ method: "POST" })
       .update({
         title: data.title,
         description: data.description || null,
+        requirements: data.requirements || null,
+        budget: data.budget ?? null,
+        expected_close_date: data.expectedCloseDate || null,
         company_id: data.companyId,
         contact_id: data.contactId,
       })
@@ -626,7 +662,9 @@ export const convertLead = createServerFn({ method: "POST" })
 
       const { data: lead } = await check.supabase
         .from("leads")
-        .select("status, title, company_id, contact_id, owner_id")
+        .select(
+          "status, title, company_id, contact_id, owner_id, budget, requirements, expected_close_date",
+        )
         .eq("id", data.leadId)
         .maybeSingle();
 
@@ -647,6 +685,12 @@ export const convertLead = createServerFn({ method: "POST" })
           contact_id: lead.contact_id,
           owner_id: lead.owner_id,
           title: lead.title,
+          // Carry the figures the Tech and Finance leads actually reviewed
+          // onto the deal, instead of opening it blank and making the rep
+          // retype what was already approved.
+          budget: lead.budget,
+          requirements: lead.requirements,
+          deadline: lead.expected_close_date,
         })
         .select("id")
         .single();

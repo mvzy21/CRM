@@ -2,8 +2,21 @@ import { Link, useNavigate } from "@tanstack/react-router";
 import { ArrowLeft, Flame, Snowflake } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "#/components/ui/select.tsx";
+import { Textarea } from "#/components/ui/textarea.tsx";
 import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx";
 import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
+import {
+  type Activity,
+  listActivities,
+  logActivity,
+} from "#/lib/supabase/activities.ts";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
 import {
@@ -30,6 +43,12 @@ import { LeadReviewDialog } from "./LeadReviewDialog.tsx";
 import { LeadStatusStepper } from "./LeadStatusStepper.tsx";
 import { MarkColdDialog } from "./MarkColdDialog.tsx";
 import { ReassignOwnerDialog } from "./ReassignOwnerDialog.tsx";
+
+const ACTIVITY_KIND_LABELS: Record<Activity["kind"], string> = {
+  call: "Call",
+  meeting: "Meeting",
+  note: "Note",
+};
 
 const STATUS_LABELS: Record<string, string> = {
   new: "New",
@@ -75,6 +94,10 @@ export function LeadDetailView({
   const [timelineEvents, setTimelineEvents] = useState<TimelineEvent[] | null>(
     null,
   );
+  const [activities, setActivities] = useState<Activity[]>([]);
+  const [logKind, setLogKind] = useState<Activity["kind"]>("call");
+  const [logBody, setLogBody] = useState("");
+  const [loggingActivity, setLoggingActivity] = useState(false);
 
   async function refresh() {
     const [
@@ -84,6 +107,7 @@ export function LeadDetailView({
       techLeadsResult,
       salesRepsResult,
       timelineResult,
+      activitiesResult,
     ] = await Promise.all([
       getLead({ data: { leadId } }),
       listCompanies(),
@@ -91,6 +115,7 @@ export function LeadDetailView({
       listTechLeads(),
       listSalesReps(),
       listLeadTimeline({ data: { leadId } }),
+      listActivities({ data: { leadId } }),
     ]);
 
     if (leadResult.success) {
@@ -104,6 +129,23 @@ export function LeadDetailView({
     if (techLeadsResult.success) setTechLeads(techLeadsResult.users);
     if (salesRepsResult.success) setSalesReps(salesRepsResult.users);
     if (timelineResult.success) setTimelineEvents(timelineResult.events);
+    if (activitiesResult.success) setActivities(activitiesResult.activities);
+  }
+
+  async function handleLogActivity(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!logBody.trim()) return;
+    setLoggingActivity(true);
+    const result = await logActivity({
+      data: { leadId, kind: logKind, body: logBody.trim() },
+    });
+    setLoggingActivity(false);
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    setLogBody("");
+    refresh();
   }
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: fetch on mount + leadId change
@@ -182,6 +224,12 @@ export function LeadDetailView({
     currentUserRole === "sales_manager" && lead.status === "finance_approved";
   const canReverse =
     isAdmin && lead.status !== "new" && lead.status !== "converted";
+  // Mirrors the activities_insert_deal_access RLS lead branch: the owning
+  // Sales Rep, a Sales Manager (oversight), or an Admin.
+  const canLogInteraction =
+    isAdmin ||
+    currentUserRole === "sales_manager" ||
+    lead.ownerId === currentUserId;
 
   return (
     <div>
@@ -273,6 +321,13 @@ export function LeadDetailView({
           <p className="mt-1 text-sm text-[var(--ink)]">
             {lead.contactName ?? "—"}
           </p>
+          {lead.contactEmail || lead.contactPhone ? (
+            <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
+              {[lead.contactEmail, lead.contactPhone]
+                .filter(Boolean)
+                .join(" · ")}
+            </p>
+          ) : null}
         </div>
 
         <div>
@@ -309,6 +364,33 @@ export function LeadDetailView({
               </p>
             )}
           </div>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+            Indicative budget
+          </p>
+          <p className="mt-1 text-sm text-[var(--ink)]">
+            {lead.budget === null ? "—" : lead.budget.toLocaleString()}
+          </p>
+        </div>
+
+        <div>
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+            Expected close
+          </p>
+          <p className="mt-1 text-sm text-[var(--ink)]">
+            {lead.expectedCloseDate ?? "—"}
+          </p>
+        </div>
+
+        <div className="sm:col-span-2">
+          <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+            Requirements
+          </p>
+          <p className="mt-1 whitespace-pre-wrap text-sm text-[var(--ink)]">
+            {lead.requirements ?? "—"}
+          </p>
         </div>
 
         <div className="sm:col-span-2">
@@ -364,6 +446,79 @@ export function LeadDetailView({
 
       <div className="panel mt-6 rounded-2xl p-6">
         <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
+          Client interactions
+        </p>
+        <p className="mt-1 text-xs text-[var(--ink-soft)]">
+          Log the calls and meetings behind this lead — this is the history the
+          Tech and Finance reviewers read before deciding.
+        </p>
+
+        {canLogInteraction ? (
+          <form
+            onSubmit={handleLogActivity}
+            className="mt-4 flex flex-col gap-3"
+          >
+            <div className="flex items-center gap-2">
+              <Select
+                value={logKind}
+                onValueChange={(value) => setLogKind(value as Activity["kind"])}
+              >
+                <SelectTrigger className="w-36">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="call">Call</SelectItem>
+                  <SelectItem value="meeting">Meeting</SelectItem>
+                  <SelectItem value="note">Note</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button
+                type="submit"
+                size="sm"
+                disabled={loggingActivity || !logBody.trim()}
+              >
+                Log
+              </Button>
+            </div>
+            <Textarea
+              value={logBody}
+              onChange={(event) => setLogBody(event.target.value)}
+              placeholder="What happened?"
+            />
+          </form>
+        ) : null}
+
+        <div className="mt-4 flex flex-col gap-3">
+          {activities.length === 0 ? (
+            <p className="text-sm text-[var(--ink-soft)]">
+              No interactions logged yet.
+            </p>
+          ) : (
+            activities.map((activity) => (
+              <div
+                key={activity.id}
+                className="rounded-xl border border-[var(--border)] p-4"
+              >
+                <div className="flex items-center justify-between text-xs text-[var(--ink-soft)]">
+                  <span className="font-medium text-[var(--ink)]">
+                    {ACTIVITY_KIND_LABELS[activity.kind]}
+                  </span>
+                  <span>
+                    {activity.authorName ?? "—"} ·{" "}
+                    {formatRelativeTime(activity.createdAt)}
+                  </span>
+                </div>
+                <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--ink)]">
+                  {activity.body}
+                </p>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      <div className="panel mt-6 rounded-2xl p-6">
+        <p className="text-xs font-medium uppercase tracking-wide text-[var(--ink-soft)]">
           Timeline
         </p>
         <div className="mt-4">
@@ -402,6 +557,7 @@ export function LeadDetailView({
           if (!open) setReviewKind(null);
         }}
         lead={lead}
+        activities={activities}
         kind={reviewKind ?? "technical"}
         onSubmit={(id, decision, notes) =>
           reviewKind === "technical"

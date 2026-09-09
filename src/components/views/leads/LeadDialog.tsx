@@ -41,6 +41,9 @@ export function LeadDialog({
 }: LeadDialogProps) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [requirements, setRequirements] = useState("");
+  const [budget, setBudget] = useState("");
+  const [expectedCloseDate, setExpectedCloseDate] = useState("");
   const [companyId, setCompanyId] = useState<string | null>(null);
   const [contactId, setContactId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -50,6 +53,13 @@ export function LeadDialog({
     if (!open) return;
     setTitle(editingLead?.title ?? "");
     setDescription(editingLead?.description ?? "");
+    setRequirements(editingLead?.requirements ?? "");
+    setBudget(
+      editingLead?.budget === null || editingLead?.budget === undefined
+        ? ""
+        : String(editingLead.budget),
+    );
+    setExpectedCloseDate(editingLead?.expectedCloseDate ?? "");
     setCompanyId(editingLead?.companyId ?? null);
     setContactId(editingLead?.contactId ?? null);
     setError(null);
@@ -60,6 +70,12 @@ export function LeadDialog({
     setError(null);
     setSubmitting(true);
 
+    const assessment = {
+      requirements,
+      budget: budget.trim() === "" ? null : Number(budget),
+      expectedCloseDate,
+    };
+
     const result = editingLead
       ? await updateLead({
           data: {
@@ -68,10 +84,11 @@ export function LeadDialog({
             description,
             companyId,
             contactId,
+            ...assessment,
           },
         })
       : await createLead({
-          data: { title, description, companyId, contactId },
+          data: { title, description, companyId, contactId, ...assessment },
         });
 
     setSubmitting(false);
@@ -115,6 +132,44 @@ export function LeadDialog({
               onChange={(event) => setDescription(event.target.value)}
               className="mt-1.5"
             />
+          </div>
+
+          <div>
+            <Label htmlFor="lead-requirements">Requirements</Label>
+            <Textarea
+              id="lead-requirements"
+              value={requirements}
+              onChange={(event) => setRequirements(event.target.value)}
+              className="mt-1.5"
+              placeholder="What the client is asking for — the Tech Lead reviews feasibility against this."
+            />
+          </div>
+
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+            <div>
+              <Label htmlFor="lead-budget">Indicative budget</Label>
+              <Input
+                id="lead-budget"
+                type="number"
+                min="0"
+                step="0.01"
+                value={budget}
+                onChange={(event) => setBudget(event.target.value)}
+                className="mt-1.5"
+                placeholder="Reviewed by Finance"
+              />
+            </div>
+
+            <div>
+              <Label htmlFor="lead-expected-close">Expected close date</Label>
+              <Input
+                id="lead-expected-close"
+                type="date"
+                value={expectedCloseDate}
+                onChange={(event) => setExpectedCloseDate(event.target.value)}
+                className="mt-1.5"
+              />
+            </div>
           </div>
 
           <div>
