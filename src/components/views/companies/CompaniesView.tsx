@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
+import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
 import {
   type Company,
   createCompany,
@@ -89,13 +90,16 @@ export function CompaniesView({
 
   return (
     <div>
-      <div>
-        <h1 className="display-title text-2xl font-bold text-[var(--ink)] sm:text-3xl">
-          Companies
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
-          Client companies your team is working with.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="display-title text-2xl font-bold text-[var(--ink)] sm:text-3xl">
+            Companies
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
+            Client companies your team is working with.
+          </p>
+        </div>
+        <ExportButton entity="companies" onError={setError} />
       </div>
 
       {error ? (

@@ -1,7 +1,9 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, Plus, Snowflake } from "lucide-react";
+import { Flame, Plus, Snowflake, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
+import { ImportDialog } from "#/components/views/data-transfer/ImportDialog.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
 import {
@@ -36,6 +38,7 @@ export function LeadsView({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [taggingId, setTaggingId] = useState<string | null>(null);
 
@@ -87,12 +90,21 @@ export function LeadsView({
             Click a lead to view details and take approval actions.
           </p>
         </div>
-        {canCreate ? (
-          <Button onClick={() => setDialogOpen(true)}>
-            <Plus className="h-4 w-4" />
-            Add lead
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButton entity="leads" onError={setError} />
+          {canCreate ? (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
+                Import CSV
+              </Button>
+              <Button onClick={() => setDialogOpen(true)}>
+                <Plus className="h-4 w-4" />
+                Add lead
+              </Button>
+            </>
+          ) : null}
+        </div>
       </div>
 
       {error ? (
@@ -214,6 +226,13 @@ export function LeadsView({
         contacts={contacts}
         editingLead={null}
         onSaved={refresh}
+      />
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entity="leads"
+        onImported={refresh}
       />
     </div>
   );

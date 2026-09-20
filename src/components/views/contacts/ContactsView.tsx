@@ -1,6 +1,8 @@
-import { Plus } from "lucide-react";
+import { Plus, Upload } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
+import { ImportDialog } from "#/components/views/data-transfer/ImportDialog.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
 import { type Contact, listContacts } from "#/lib/supabase/contacts.ts";
 import { formatRelativeTime } from "#/lib/utils.ts";
@@ -21,6 +23,7 @@ export function ContactsView({
   const [companies, setCompanies] = useState<Company[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importOpen, setImportOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
 
   async function refresh() {
@@ -65,12 +68,21 @@ export function ContactsView({
             Everyone you work with, linked to the company they belong to.
           </p>
         </div>
-        {canCreate ? (
-          <Button onClick={openCreate}>
-            <Plus className="h-4 w-4" />
-            Add contact
-          </Button>
-        ) : null}
+        <div className="flex flex-wrap items-center gap-2">
+          <ExportButton entity="contacts" onError={setError} />
+          {canCreate ? (
+            <>
+              <Button variant="outline" onClick={() => setImportOpen(true)}>
+                <Upload className="h-4 w-4" />
+                Import CSV
+              </Button>
+              <Button onClick={openCreate}>
+                <Plus className="h-4 w-4" />
+                Add contact
+              </Button>
+            </>
+          ) : null}
+        </div>
       </div>
 
       {error ? (
@@ -158,6 +170,13 @@ export function ContactsView({
         companies={companies}
         editingContact={editingContact}
         onSaved={refresh}
+      />
+
+      <ImportDialog
+        open={importOpen}
+        onOpenChange={setImportOpen}
+        entity="contacts"
+        onImported={refresh}
       />
     </div>
   );

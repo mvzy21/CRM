@@ -1,5 +1,6 @@
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
 import {
   DEAL_STAGE_LABELS,
   type Deal,
@@ -34,14 +35,17 @@ export function DealsView({ workspaceId }: DealsViewProps) {
 
   return (
     <div>
-      <div>
-        <h1 className="display-title text-2xl font-bold text-[var(--ink)] sm:text-3xl">
-          Deals
-        </h1>
-        <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
-          Deals are created by converting a finance-approved lead. Click a deal
-          to view details and move it through the pipeline.
-        </p>
+      <div className="flex flex-wrap items-start justify-between gap-4">
+        <div>
+          <h1 className="display-title text-2xl font-bold text-[var(--ink)] sm:text-3xl">
+            Deals
+          </h1>
+          <p className="mt-2 max-w-xl text-sm leading-6 text-[var(--ink-soft)]">
+            Deals are created by converting a finance-approved lead. Click a
+            deal to view details and move it through the pipeline.
+          </p>
+        </div>
+        <ExportButton entity="deals" onError={setError} />
       </div>
 
       {error ? (
