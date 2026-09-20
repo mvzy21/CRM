@@ -6,12 +6,15 @@ import {
 } from "@tanstack/react-router";
 import {
   Building2,
+  ChartColumn,
   Contact,
   Flame,
   Handshake,
   LayoutDashboard,
   LogOut,
   Menu,
+  Search,
+  TrendingUp,
   UsersRound,
   X,
 } from "lucide-react";
@@ -51,6 +54,10 @@ export function WorkspaceShell({
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [counts, setCounts] = useState<RailCounts | null>(null);
+
+  // US-24/US-25 are the manager-level views. "Leadership" in the backlog
+  // maps onto Sales Manager rather than a sixth role; Admin sees them too.
+  const canSeeManagerViews = isAdmin || userRole === "sales_manager";
 
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
@@ -163,6 +170,40 @@ export function WorkspaceShell({
             <LayoutDashboard className="rail-icon h-4 w-4" />
             Overview
           </Link>
+
+          <Link
+            to="/workspace/$workspaceId/search"
+            params={{ workspaceId }}
+            className="rail-link"
+            activeProps={{ className: "rail-link is-active" }}
+          >
+            <Search className="rail-icon h-4 w-4" />
+            Search
+          </Link>
+
+          {canSeeManagerViews ? (
+            <>
+              <Link
+                to="/workspace/$workspaceId/pipeline"
+                params={{ workspaceId }}
+                className="rail-link"
+                activeProps={{ className: "rail-link is-active" }}
+              >
+                <TrendingUp className="rail-icon h-4 w-4" />
+                Team Pipeline
+              </Link>
+
+              <Link
+                to="/workspace/$workspaceId/reports"
+                params={{ workspaceId }}
+                className="rail-link"
+                activeProps={{ className: "rail-link is-active" }}
+              >
+                <ChartColumn className="rail-icon h-4 w-4" />
+                Reports
+              </Link>
+            </>
+          ) : null}
 
           {isAdmin ? (
             <Link
