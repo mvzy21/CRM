@@ -175,19 +175,32 @@ export const createLead = createServerFn({ method: "POST" })
     const check = await requireRole(["sales_rep"]);
     if (!check.ok) return { success: false, message: check.message };
 
-    const { error } = await check.supabase.from("leads").insert({
-      title: data.title,
-      description: data.description || null,
-      requirements: data.requirements || null,
-      budget: data.budget ?? null,
-      expected_close_date: data.expectedCloseDate || null,
-      company_id: data.companyId,
-      contact_id: data.contactId,
-      org_id: check.orgId,
-      owner_id: check.userId,
-    });
+    const { data: created, error } = await check.supabase
+      .from("leads")
+      .insert({
+        title: data.title,
+        description: data.description || null,
+        requirements: data.requirements || null,
+        budget: data.budget ?? null,
+        expected_close_date: data.expectedCloseDate || null,
+        company_id: data.companyId,
+        contact_id: data.contactId,
+        org_id: check.orgId,
+        owner_id: check.userId,
+      })
+      .select("id")
+      .single();
 
     if (error) return { success: false, message: "Failed to create lead." };
+
+    await logTimelineEvent(check.supabase, {
+      orgId: check.orgId,
+      actorId: check.userId,
+      entityType: "lead",
+      entityId: created.id,
+      summary: "Lead created",
+    });
+
     return { success: true };
   });
 
