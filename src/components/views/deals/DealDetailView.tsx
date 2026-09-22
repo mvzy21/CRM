@@ -1,5 +1,5 @@
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import {
@@ -14,6 +14,7 @@ import { RemindersPanel } from "#/components/views/reminders/RemindersPanel.tsx"
 import { TimelineFeed } from "#/components/views/timeline/TimelineFeed.tsx";
 import {
   type Activity,
+  deleteActivity,
   listActivities,
   logActivity,
 } from "#/lib/supabase/activities.ts";
@@ -150,6 +151,16 @@ export function DealDetailView({
     } else {
       setError(result.message);
     }
+  }
+
+  async function handleDeleteNote(activityId: string) {
+    if (!confirm("Delete this note? This can't be undone.")) return;
+    const result = await deleteActivity({ data: { activityId } });
+    if (!result.success) {
+      setError(result.message);
+      return;
+    }
+    refresh();
   }
 
   if (!deal) {
@@ -329,9 +340,19 @@ export function DealDetailView({
                     <p className="whitespace-pre-wrap text-sm text-[var(--ink)]">
                       {note.body}
                     </p>
-                    <p className="mt-2 text-xs text-[var(--ink-soft)]">
+                    <p className="mt-2 flex items-center gap-2 text-xs text-[var(--ink-soft)]">
                       {note.authorName ?? "—"} ·{" "}
                       {formatRelativeTime(note.createdAt)}
+                      {canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNote(note.id)}
+                          aria-label="Delete note"
+                          className="text-[var(--ink-soft)] hover:text-[var(--destructive)]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
                     </p>
                   </div>
                 ))
@@ -458,9 +479,19 @@ export function DealDetailView({
                     <span className="font-medium text-[var(--ink)]">
                       {ACTIVITY_KIND_LABELS[activity.kind]}
                     </span>
-                    <span>
+                    <span className="flex items-center gap-2">
                       {activity.authorName ?? "—"} ·{" "}
                       {formatRelativeTime(activity.createdAt)}
+                      {activity.kind === "note" && canEdit ? (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteNote(activity.id)}
+                          aria-label="Delete note"
+                          className="text-[var(--ink-soft)] hover:text-[var(--destructive)]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      ) : null}
                     </span>
                   </div>
                   <p className="mt-2 whitespace-pre-wrap text-sm text-[var(--ink)]">

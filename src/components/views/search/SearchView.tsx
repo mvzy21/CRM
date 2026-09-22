@@ -55,32 +55,31 @@ export function SearchView({ workspaceId }: SearchViewProps) {
     }
   }
 
-  function hitLink(hit: SearchHit) {
+  // Companies and contacts have no per-record detail route -- send the
+  // click to the list page they live on, same as the Ctrl/Cmd+K palette.
+  function hitTarget(hit: SearchHit) {
     if (hit.kind === "lead") {
-      return (
-        <Link
-          to="/workspace/$workspaceId/leads/$leadId"
-          params={{ workspaceId, leadId: hit.id }}
-          className="hover:underline"
-        >
-          {hit.title}
-        </Link>
-      );
+      return {
+        to: "/workspace/$workspaceId/leads/$leadId" as const,
+        params: { workspaceId, leadId: hit.id },
+      };
     }
     if (hit.kind === "deal") {
-      return (
-        <Link
-          to="/workspace/$workspaceId/deals/$dealId"
-          params={{ workspaceId, dealId: hit.id }}
-          className="hover:underline"
-        >
-          {hit.title}
-        </Link>
-      );
+      return {
+        to: "/workspace/$workspaceId/deals/$dealId" as const,
+        params: { workspaceId, dealId: hit.id },
+      };
     }
-    // Companies and contacts are list-only -- there's no detail route to
-    // deep-link into, so the name stays plain text.
-    return hit.title;
+    if (hit.kind === "company") {
+      return {
+        to: "/workspace/$workspaceId/companies" as const,
+        params: { workspaceId },
+      };
+    }
+    return {
+      to: "/workspace/$workspaceId/contacts" as const,
+      params: { workspaceId },
+    };
   }
 
   return (
@@ -160,18 +159,23 @@ export function SearchView({ workspaceId }: SearchViewProps) {
                 return (
                   <li
                     key={`${hit.kind}-${hit.id}`}
-                    className="flex items-start gap-3 border-b border-[var(--line)] px-5 py-3 last:border-0"
+                    className="border-b border-[var(--line)] last:border-0"
                   >
-                    <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ink-soft)]" />
-                    <div className="min-w-0">
-                      <p className="text-sm font-medium text-[var(--ink)]">
-                        {hitLink(hit)}
-                      </p>
-                      <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
-                        {KIND_META[hit.kind].label}
-                        {hit.subtitle ? ` · ${hit.subtitle}` : ""}
-                      </p>
-                    </div>
+                    <Link
+                      {...hitTarget(hit)}
+                      className="flex items-start gap-3 px-5 py-3 hover:bg-[var(--muted)]"
+                    >
+                      <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--ink-soft)]" />
+                      <div className="min-w-0">
+                        <p className="text-sm font-medium text-[var(--ink)]">
+                          {hit.title}
+                        </p>
+                        <p className="mt-0.5 text-xs text-[var(--ink-soft)]">
+                          {KIND_META[hit.kind].label}
+                          {hit.subtitle ? ` · ${hit.subtitle}` : ""}
+                        </p>
+                      </div>
+                    </Link>
                   </li>
                 );
               })}

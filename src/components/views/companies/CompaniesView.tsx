@@ -1,4 +1,5 @@
-import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
 import { Input } from "#/components/ui/input.tsx";
 import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
@@ -30,6 +31,19 @@ export function CompaniesView({
   const [editingName, setEditingName] = useState("");
   const [editingIndustry, setEditingIndustry] = useState("");
   const [savingEdit, setSavingEdit] = useState(false);
+  const [filterText, setFilterText] = useState("");
+
+  const filteredCompanies = useMemo(() => {
+    if (!companies) return companies;
+    const term = filterText.trim().toLowerCase();
+    if (!term) return companies;
+    return companies.filter(
+      (c) =>
+        c.name.toLowerCase().includes(term) ||
+        (c.industry ?? "").toLowerCase().includes(term) ||
+        (c.ownerName ?? "").toLowerCase().includes(term),
+    );
+  }, [companies, filterText]);
 
   async function refresh() {
     const result = await listCompanies();
@@ -136,7 +150,18 @@ export function CompaniesView({
         </form>
       ) : null}
 
-      <div className="panel mt-6 overflow-x-auto rounded-2xl">
+      <div className="relative mt-6 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+        <Input
+          value={filterText}
+          onChange={(event) => setFilterText(event.target.value)}
+          placeholder="Filter by name, industry or owner…"
+          className="pl-9"
+          aria-label="Filter companies"
+        />
+      </div>
+
+      <div className="panel mt-4 overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[620px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--line)] text-xs text-[var(--ink-soft)]">
@@ -148,7 +173,7 @@ export function CompaniesView({
             </tr>
           </thead>
           <tbody>
-            {companies === null ? (
+            {filteredCompanies === null ? (
               <tr>
                 <td
                   colSpan={5}
@@ -157,17 +182,19 @@ export function CompaniesView({
                   Loading companies&hellip;
                 </td>
               </tr>
-            ) : companies.length === 0 ? (
+            ) : filteredCompanies.length === 0 ? (
               <tr>
                 <td
                   colSpan={5}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
-                  No companies yet.
+                  {filterText.trim()
+                    ? "No companies match your filter."
+                    : "No companies yet."}
                 </td>
               </tr>
             ) : (
-              companies.map((company) => (
+              filteredCompanies.map((company) => (
                 <tr
                   key={company.id}
                   className="border-b border-[var(--line)] last:border-0"

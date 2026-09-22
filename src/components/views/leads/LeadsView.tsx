@@ -1,7 +1,8 @@
 import { Link } from "@tanstack/react-router";
-import { Flame, Plus, Snowflake, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Flame, Plus, Search, Snowflake, Upload } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
 import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
 import { ImportDialog } from "#/components/views/data-transfer/ImportDialog.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
@@ -41,6 +42,20 @@ export function LeadsView({
   const [importOpen, setImportOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
   const [taggingId, setTaggingId] = useState<string | null>(null);
+  const [filterText, setFilterText] = useState("");
+
+  const filteredLeads = useMemo(() => {
+    if (!leads) return leads;
+    const term = filterText.trim().toLowerCase();
+    if (!term) return leads;
+    return leads.filter(
+      (l) =>
+        l.title.toLowerCase().includes(term) ||
+        (l.companyName ?? "").toLowerCase().includes(term) ||
+        (l.ownerName ?? "").toLowerCase().includes(term) ||
+        (STATUS_LABELS[l.status] ?? l.status).toLowerCase().includes(term),
+    );
+  }, [leads, filterText]);
 
   async function refresh() {
     const [leadsResult, companiesResult, contactsResult] = await Promise.all([
@@ -116,7 +131,18 @@ export function LeadsView({
         </p>
       ) : null}
 
-      <div className="panel mt-6 overflow-x-auto rounded-2xl">
+      <div className="relative mt-6 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+        <Input
+          value={filterText}
+          onChange={(event) => setFilterText(event.target.value)}
+          placeholder="Filter by title, company, owner or status…"
+          className="pl-9"
+          aria-label="Filter leads"
+        />
+      </div>
+
+      <div className="panel mt-4 overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[700px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--line)] text-xs text-[var(--ink-soft)]">
@@ -129,7 +155,7 @@ export function LeadsView({
             </tr>
           </thead>
           <tbody>
-            {leads === null ? (
+            {filteredLeads === null ? (
               <tr>
                 <td
                   colSpan={6}
@@ -138,17 +164,19 @@ export function LeadsView({
                   Loading leads&hellip;
                 </td>
               </tr>
-            ) : leads.length === 0 ? (
+            ) : filteredLeads.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
-                  No leads yet.
+                  {filterText.trim()
+                    ? "No leads match your filter."
+                    : "No leads yet."}
                 </td>
               </tr>
             ) : (
-              leads.map((lead) => (
+              filteredLeads.map((lead) => (
                 <tr
                   key={lead.id}
                   className="border-b border-[var(--line)] last:border-0"

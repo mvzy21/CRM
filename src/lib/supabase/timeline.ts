@@ -98,7 +98,8 @@ export const listLeadTimeline = createServerFn({ method: "GET" })
           (row): TimelineEvent => ({
             id: row.id,
             kind: row.kind,
-            summary: row.body,
+            summary:
+              row.kind === "note" ? `Added a note — "${row.body}"` : row.body,
             actorName: row.author?.display_name ?? row.author?.email ?? null,
             createdAt: row.created_at,
           }),
@@ -157,7 +158,8 @@ export const listDealTimeline = createServerFn({ method: "GET" })
           (row): TimelineEvent => ({
             id: row.id,
             kind: row.kind,
-            summary: row.body,
+            summary:
+              row.kind === "note" ? `Added a note — "${row.body}"` : row.body,
             actorName: row.author?.display_name ?? row.author?.email ?? null,
             createdAt: row.created_at,
           }),

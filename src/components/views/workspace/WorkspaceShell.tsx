@@ -123,11 +123,11 @@ export function WorkspaceShell({
         </div>
       </div>
 
-      <div className="flex items-center gap-2 px-4 pb-2">
+      <div className="px-4 pb-2">
         <button
           type="button"
           onClick={() => setSearchOpen(true)}
-          className="flex flex-1 items-center gap-2 rounded-md border border-[var(--rail-line,var(--line))] bg-[var(--rail-bg-soft)] px-3 py-2 text-left text-[13px] text-[var(--rail-ink-soft)] transition-colors hover:text-[var(--rail-ink)]"
+          className="flex w-full items-center gap-2 rounded-md border border-[var(--rail-line,var(--line))] bg-[var(--rail-bg-soft)] px-3 py-2 text-left text-[13px] text-[var(--rail-ink-soft)] transition-colors hover:text-[var(--rail-ink)]"
         >
           <Search className="h-3.5 w-3.5 shrink-0" />
           <span className="flex-1">Search…</span>
@@ -135,7 +135,6 @@ export function WorkspaceShell({
             ⌘K
           </kbd>
         </button>
-        <NotificationBell workspaceId={workspaceId} />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 pb-4">
@@ -317,6 +316,8 @@ export function WorkspaceShell({
           <Search className="h-4 w-4" />
         </button>
 
+        <NotificationBell workspaceId={workspaceId} />
+
         {userRole ? <span className="rail-role">{ROLE_LABELS[userRole]}</span> : null}
       </header>
 
@@ -345,6 +346,12 @@ export function WorkspaceShell({
 
       <main className="px-4 py-10 lg:pl-[260px]">
         <div className="mx-auto w-full max-w-[1080px] lg:px-6">
+          {/* Desktop only -- mobile already has the bell in the sticky top
+              bar above. This keeps it in the conventional top-right corner
+              instead of buried in the left rail. */}
+          <div className="sticky top-4 z-30 mb-4 hidden justify-end lg:flex">
+            <NotificationBell workspaceId={workspaceId} />
+          </div>
           <Outlet />
         </div>
       </main>

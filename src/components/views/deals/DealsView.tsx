@@ -1,5 +1,7 @@
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { Search } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Input } from "#/components/ui/input.tsx";
 import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
 import {
   DEAL_STAGE_LABELS,
@@ -22,6 +24,21 @@ const STATUS_LABELS: Record<string, string> = {
 export function DealsView({ workspaceId }: DealsViewProps) {
   const [deals, setDeals] = useState<Deal[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [filterText, setFilterText] = useState("");
+
+  const filteredDeals = useMemo(() => {
+    if (!deals) return deals;
+    const term = filterText.trim().toLowerCase();
+    if (!term) return deals;
+    return deals.filter(
+      (d) =>
+        d.title.toLowerCase().includes(term) ||
+        (d.companyName ?? "").toLowerCase().includes(term) ||
+        (d.ownerName ?? "").toLowerCase().includes(term) ||
+        DEAL_STAGE_LABELS[d.stage].toLowerCase().includes(term) ||
+        (STATUS_LABELS[d.status] ?? d.status).toLowerCase().includes(term),
+    );
+  }, [deals, filterText]);
 
   useEffect(() => {
     listDeals().then((result) => {
@@ -59,7 +76,18 @@ export function DealsView({ workspaceId }: DealsViewProps) {
 
       {deals && deals.length > 0 ? <DealsPipelineChart deals={deals} /> : null}
 
-      <div className="panel mt-6 overflow-x-auto rounded-2xl">
+      <div className="relative mt-6 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+        <Input
+          value={filterText}
+          onChange={(event) => setFilterText(event.target.value)}
+          placeholder="Filter by title, company, owner, stage or status…"
+          className="pl-9"
+          aria-label="Filter deals"
+        />
+      </div>
+
+      <div className="panel mt-4 overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[700px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--line)] text-xs text-[var(--ink-soft)]">
@@ -72,7 +100,7 @@ export function DealsView({ workspaceId }: DealsViewProps) {
             </tr>
           </thead>
           <tbody>
-            {deals === null ? (
+            {filteredDeals === null ? (
               <tr>
                 <td
                   colSpan={6}
@@ -81,17 +109,19 @@ export function DealsView({ workspaceId }: DealsViewProps) {
                   Loading deals&hellip;
                 </td>
               </tr>
-            ) : deals.length === 0 ? (
+            ) : filteredDeals.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
-                  No deals yet -- convert a finance-approved lead to create one.
+                  {filterText.trim()
+                    ? "No deals match your filter."
+                    : "No deals yet -- convert a finance-approved lead to create one."}
                 </td>
               </tr>
             ) : (
-              deals.map((deal) => (
+              filteredDeals.map((deal) => (
                 <tr
                   key={deal.id}
                   className="border-b border-[var(--line)] last:border-0"

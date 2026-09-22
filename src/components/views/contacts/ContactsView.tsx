@@ -1,6 +1,7 @@
-import { Plus, Upload } from "lucide-react";
-import { useEffect, useState } from "react";
+import { Plus, Search, Upload } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "#/components/ui/button.tsx";
+import { Input } from "#/components/ui/input.tsx";
 import { ExportButton } from "#/components/views/data-transfer/ExportButton.tsx";
 import { ImportDialog } from "#/components/views/data-transfer/ImportDialog.tsx";
 import { type Company, listCompanies } from "#/lib/supabase/companies.ts";
@@ -25,6 +26,20 @@ export function ContactsView({
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importOpen, setImportOpen] = useState(false);
   const [editingContact, setEditingContact] = useState<Contact | null>(null);
+  const [filterText, setFilterText] = useState("");
+
+  const filteredContacts = useMemo(() => {
+    if (!contacts) return contacts;
+    const term = filterText.trim().toLowerCase();
+    if (!term) return contacts;
+    return contacts.filter(
+      (c) =>
+        c.name.toLowerCase().includes(term) ||
+        (c.companyName ?? "").toLowerCase().includes(term) ||
+        (c.email ?? "").toLowerCase().includes(term) ||
+        (c.phone ?? "").toLowerCase().includes(term),
+    );
+  }, [contacts, filterText]);
 
   async function refresh() {
     const [contactsResult, companiesResult] = await Promise.all([
@@ -94,7 +109,18 @@ export function ContactsView({
         </p>
       ) : null}
 
-      <div className="panel mt-6 overflow-x-auto rounded-2xl">
+      <div className="relative mt-6 max-w-sm">
+        <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-[var(--ink-soft)]" />
+        <Input
+          value={filterText}
+          onChange={(event) => setFilterText(event.target.value)}
+          placeholder="Filter by name, company, email or phone…"
+          className="pl-9"
+          aria-label="Filter contacts"
+        />
+      </div>
+
+      <div className="panel mt-4 overflow-x-auto rounded-2xl">
         <table className="w-full min-w-[640px] text-left text-sm">
           <thead>
             <tr className="border-b border-[var(--line)] text-xs text-[var(--ink-soft)]">
@@ -107,7 +133,7 @@ export function ContactsView({
             </tr>
           </thead>
           <tbody>
-            {contacts === null ? (
+            {filteredContacts === null ? (
               <tr>
                 <td
                   colSpan={6}
@@ -116,17 +142,19 @@ export function ContactsView({
                   Loading contacts&hellip;
                 </td>
               </tr>
-            ) : contacts.length === 0 ? (
+            ) : filteredContacts.length === 0 ? (
               <tr>
                 <td
                   colSpan={6}
                   className="px-5 py-6 text-center text-[var(--ink-soft)]"
                 >
-                  No contacts yet.
+                  {filterText.trim()
+                    ? "No contacts match your filter."
+                    : "No contacts yet."}
                 </td>
               </tr>
             ) : (
-              contacts.map((contact) => (
+              filteredContacts.map((contact) => (
                 <tr
                   key={contact.id}
                   className="border-b border-[var(--line)] last:border-0"
