@@ -390,13 +390,27 @@ export const importRecords = createServerFn({ method: "POST" })
       // lookup query per row.
       const [{ data: companyRows }, { data: contactRows }] = await Promise.all([
         check.supabase.from("companies").select("id, name"),
-        check.supabase.from("contacts").select("id, name"),
+        check.supabase.from("contacts").select("id, name, email"),
       ]);
       const companyByName = new Map(
         (companyRows ?? []).map((c) => [c.name.trim().toLowerCase(), c.id]),
       );
       const contactByName = new Map(
         (contactRows ?? []).map((c) => [c.name.trim().toLowerCase(), c.id]),
+      );
+
+      // Dedup guard for the contacts import, mirroring createContact: email
+      // is the stronger identity signal when present, name otherwise. Seeded
+      // from existing rows and grown as the file is walked, so two
+      // duplicate rows in the *same* CSV -- not just a re-run of the same
+      // file -- are caught too, not just the second import.
+      const existingContactEmails = new Set(
+        (contactRows ?? [])
+          .map((c) => c.email?.trim().toLowerCase())
+          .filter((e): e is string => Boolean(e)),
+      );
+      const existingContactNames = new Set(
+        (contactRows ?? []).map((c) => c.name.trim().toLowerCase()),
       );
 
       const pending: Record<string, unknown>[] = [];
@@ -429,6 +443,24 @@ export const importRecords = createServerFn({ method: "POST" })
             });
             return;
           }
+
+          const normalizedEmail = parsed.data.email?.trim().toLowerCase();
+          const normalizedName = parsed.data.name.trim().toLowerCase();
+          const isDuplicate = normalizedEmail
+            ? existingContactEmails.has(normalizedEmail)
+            : existingContactNames.has(normalizedName);
+          if (isDuplicate) {
+            outcome.failed.push({
+              row: lineNumber,
+              reason: normalizedEmail
+                ? `A contact with the email "${parsed.data.email}" already exists.`
+                : `A contact named "${parsed.data.name}" already exists.`,
+            });
+            return;
+          }
+          if (normalizedEmail) existingContactEmails.add(normalizedEmail);
+          else existingContactNames.add(normalizedName);
+
           pending.push({
             org_id: check.orgId,
             owner_id: check.userId,
