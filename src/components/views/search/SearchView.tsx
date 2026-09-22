@@ -32,11 +32,15 @@ export function SearchView({ workspaceId }: SearchViewProps) {
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Starting from "all four active" and letting a click just remove that
+  // one kind meant clicking **Contact** -- which a user reasonably reads as
+  // "show me contacts" -- actually excluded contacts and searched the
+  // other three, the exact inverse of what the chip says. Clicking a kind
+  // now isolates to just that one; clicking the sole active kind again
+  // resets back to all four, so there's still a way to search everything.
   function toggleKind(kind: SearchKind) {
     setKinds((current) =>
-      current.includes(kind)
-        ? current.filter((k) => k !== kind)
-        : [...current, kind],
+      current.length === 1 && current[0] === kind ? ALL_KINDS : [kind],
     );
   }
 
