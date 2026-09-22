@@ -259,7 +259,7 @@ export const tagLeadTemperature = createServerFn({ method: "POST" })
 
     const { data: lead } = await check.supabase
       .from("leads")
-      .select("owner_id")
+      .select("owner_id, title")
       .eq("id", data.leadId)
       .maybeSingle();
 
@@ -277,6 +277,23 @@ export const tagLeadTemperature = createServerFn({ method: "POST" })
       .eq("id", data.leadId);
 
     if (error) return { success: false, message: "Failed to tag lead." };
+
+    // Clearing the tag (temperature: null) is just tidying up -- nothing
+    // for a Sales Manager to act on, so only Hot/Cold fire a notification.
+    if (data.temperature) {
+      await notifyRole(check.supabase, {
+        orgId: check.orgId,
+        role: "sales_manager",
+        entityType: "lead",
+        entityId: data.leadId,
+        title:
+          data.temperature === "hot"
+            ? "Lead tagged Hot — ready to escalate"
+            : "Lead tagged Cold",
+        body: lead.title,
+      });
+    }
+
     return { success: true };
   });
 
