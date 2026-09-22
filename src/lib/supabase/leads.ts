@@ -1,6 +1,7 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 import { requireAuth, requireRole } from "./access.ts";
+import { notify, notifyRole } from "./notifications.ts";
 import { logTimelineEvent } from "./timeline.ts";
 
 export type LeadTemperature = "hot" | "cold" | null;
@@ -385,7 +386,7 @@ export const escalateLead = createServerFn({ method: "POST" })
 
     const { data: lead } = await check.supabase
       .from("leads")
-      .select("status, temperature")
+      .select("status, temperature, title")
       .eq("id", data.leadId)
       .maybeSingle();
 
@@ -412,6 +413,15 @@ export const escalateLead = createServerFn({ method: "POST" })
       summary: "Escalated to Tech Review",
     });
 
+    await notify(check.supabase, {
+      orgId: check.orgId,
+      userId: data.techLeadId,
+      entityType: "lead",
+      entityId: data.leadId,
+      title: "Lead escalated to you for technical review",
+      body: lead.title,
+    });
+
     return { success: true };
   });
 
@@ -430,7 +440,7 @@ export const reviewTechnicalFeasibility = createServerFn({ method: "POST" })
 
     const { data: lead } = await check.supabase
       .from("leads")
-      .select("status, tech_lead_id")
+      .select("status, tech_lead_id, title, owner_id")
       .eq("id", data.leadId)
       .maybeSingle();
 
@@ -459,10 +469,42 @@ export const reviewTechnicalFeasibility = createServerFn({ method: "POST" })
       entityType: "lead",
       entityId: data.leadId,
       summary:
-        data.decision === "approved"
+        (data.decision === "approved"
           ? "Technical review: Approved"
-          : "Technical review: Rejected",
+          : "Technical review: Rejected") +
+        (data.notes ? ` — "${data.notes}"` : ""),
     });
+
+    if (data.decision === "approved") {
+      // Any Finance Lead can pick this up (US-12), not a specific assignee.
+      await notifyRole(check.supabase, {
+        orgId: check.orgId,
+        role: "finance_lead",
+        entityType: "lead",
+        entityId: data.leadId,
+        title: "Lead ready for financial review",
+        body: lead.title,
+      });
+    } else {
+      if (lead.owner_id) {
+        await notify(check.supabase, {
+          orgId: check.orgId,
+          userId: lead.owner_id,
+          entityType: "lead",
+          entityId: data.leadId,
+          title: "Lead rejected at technical review",
+          body: lead.title,
+        });
+      }
+      await notifyRole(check.supabase, {
+        orgId: check.orgId,
+        role: "sales_manager",
+        entityType: "lead",
+        entityId: data.leadId,
+        title: "Lead rejected at technical review — mark it Cold",
+        body: lead.title,
+      });
+    }
 
     return { success: true };
   });
@@ -482,7 +524,7 @@ export const reviewFinancialViability = createServerFn({ method: "POST" })
 
     const { data: lead } = await check.supabase
       .from("leads")
-      .select("status")
+      .select("status, title, owner_id")
       .eq("id", data.leadId)
       .maybeSingle();
 
@@ -512,10 +554,41 @@ export const reviewFinancialViability = createServerFn({ method: "POST" })
       entityType: "lead",
       entityId: data.leadId,
       summary:
-        data.decision === "approved"
+        (data.decision === "approved"
           ? "Financial review: Approved"
-          : "Financial review: Rejected",
+          : "Financial review: Rejected") +
+        (data.notes ? ` — "${data.notes}"` : ""),
     });
+
+    if (data.decision === "approved") {
+      await notifyRole(check.supabase, {
+        orgId: check.orgId,
+        role: "sales_manager",
+        entityType: "lead",
+        entityId: data.leadId,
+        title: "Lead approved — ready to convert",
+        body: lead.title,
+      });
+    } else {
+      if (lead.owner_id) {
+        await notify(check.supabase, {
+          orgId: check.orgId,
+          userId: lead.owner_id,
+          entityType: "lead",
+          entityId: data.leadId,
+          title: "Lead rejected at financial review",
+          body: lead.title,
+        });
+      }
+      await notifyRole(check.supabase, {
+        orgId: check.orgId,
+        role: "sales_manager",
+        entityType: "lead",
+        entityId: data.leadId,
+        title: "Lead rejected at financial review — mark it Cold",
+        body: lead.title,
+      });
+    }
 
     return { success: true };
   });
@@ -738,6 +811,17 @@ export const convertLead = createServerFn({ method: "POST" })
         entityId: deal.id,
         summary: "Deal created from converted lead",
       });
+
+      if (lead.owner_id && lead.owner_id !== check.userId) {
+        await notify(check.supabase, {
+          orgId: check.orgId,
+          userId: lead.owner_id,
+          entityType: "deal",
+          entityId: deal.id,
+          title: "Your lead was converted to a deal",
+          body: lead.title,
+        });
+      }
 
       return { success: true, dealId: deal.id };
     },

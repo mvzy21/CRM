@@ -21,6 +21,8 @@ import {
 import { useEffect, useState } from "react";
 import ThemeToggle from "#/components/ThemeToggle.tsx";
 import { Button } from "#/components/ui/button.tsx";
+import { GlobalSearch } from "#/components/views/search/GlobalSearch.tsx";
+import { NotificationBell } from "#/components/views/workspace/NotificationBell.tsx";
 import { signOut } from "#/lib/supabase/auth.ts";
 import { getRailCounts, type RailCounts } from "#/lib/supabase/overview.ts";
 import { type AppRole, ROLE_LABELS } from "#/lib/supabase/roles.ts";
@@ -54,6 +56,21 @@ export function WorkspaceShell({
   const navigate = useNavigate();
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [counts, setCounts] = useState<RailCounts | null>(null);
+  const [searchOpen, setSearchOpen] = useState(false);
+
+  // Ctrl/Cmd+K opens search from anywhere in the workspace, not just its
+  // own nav destination -- matches the shortcut convention (GitHub,
+  // Linear, Slack) rather than inventing a new one.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "k") {
+        event.preventDefault();
+        setSearchOpen(true);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, []);
 
   // US-24/US-25 are the manager-level views. "Leadership" in the backlog
   // maps onto Sales Manager rather than a sixth role; Admin sees them too.
@@ -104,6 +121,21 @@ export function WorkspaceShell({
             {workspaceId}
           </p>
         </div>
+      </div>
+
+      <div className="flex items-center gap-2 px-4 pb-2">
+        <button
+          type="button"
+          onClick={() => setSearchOpen(true)}
+          className="flex flex-1 items-center gap-2 rounded-md border border-[var(--rail-line,var(--line))] bg-[var(--rail-bg-soft)] px-3 py-2 text-left text-[13px] text-[var(--rail-ink-soft)] transition-colors hover:text-[var(--rail-ink)]"
+        >
+          <Search className="h-3.5 w-3.5 shrink-0" />
+          <span className="flex-1">Search…</span>
+          <kbd className="hidden rounded border border-[var(--rail-line,var(--line))] px-1.5 py-0.5 text-[10px] sm:inline">
+            ⌘K
+          </kbd>
+        </button>
+        <NotificationBell workspaceId={workspaceId} />
       </div>
 
       <nav className="flex-1 overflow-y-auto px-4 pb-4">
@@ -276,9 +308,16 @@ export function WorkspaceShell({
           Altrium
         </p>
 
-        {userRole ? (
-          <span className="rail-role ml-auto">{ROLE_LABELS[userRole]}</span>
-        ) : null}
+        <button
+          type="button"
+          className="rail-icon-btn ml-auto"
+          aria-label="Search"
+          onClick={() => setSearchOpen(true)}
+        >
+          <Search className="h-4 w-4" />
+        </button>
+
+        {userRole ? <span className="rail-role">{ROLE_LABELS[userRole]}</span> : null}
       </header>
 
       {/* Slide-over drawer */}
@@ -309,6 +348,12 @@ export function WorkspaceShell({
           <Outlet />
         </div>
       </main>
+
+      <GlobalSearch
+        workspaceId={workspaceId}
+        open={searchOpen}
+        onOpenChange={setSearchOpen}
+      />
     </div>
   );
 }

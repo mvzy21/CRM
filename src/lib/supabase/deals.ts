@@ -3,15 +3,21 @@ import { z } from "zod";
 import { requireAuth } from "./access.ts";
 import { logTimelineEvent } from "./timeline.ts";
 
-export type DealStage = "proposal" | "negotiation" | "contract";
+export type DealStage = "proposal" | "negotiation" | "contract" | "delivery";
 export type DealStatus = "open" | "won" | "lost";
 
-export const DEAL_STAGES: DealStage[] = ["proposal", "negotiation", "contract"];
+export const DEAL_STAGES: DealStage[] = [
+  "proposal",
+  "negotiation",
+  "contract",
+  "delivery",
+];
 
 export const DEAL_STAGE_LABELS: Record<DealStage, string> = {
   proposal: "Proposal",
   negotiation: "Negotiation",
   contract: "Contract",
+  delivery: "Delivery",
 };
 
 export interface Deal {
@@ -170,7 +176,7 @@ export const updateDeal = createServerFn({ method: "POST" })
 // US-16: move a deal to its next (or any) pipeline stage.
 const moveDealStageSchema = z.object({
   dealId: z.string().uuid(),
-  stage: z.enum(["proposal", "negotiation", "contract"]),
+  stage: z.enum(["proposal", "negotiation", "contract", "delivery"]),
 });
 
 export const moveDealStage = createServerFn({ method: "POST" })
