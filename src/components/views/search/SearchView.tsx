@@ -124,7 +124,7 @@ export function SearchView({ workspaceId }: SearchViewProps) {
               aria-pressed={active}
               className={`rounded-full border px-3 py-1 text-xs transition-colors ${
                 active
-                  ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--paper,#fff)]"
+                  ? "border-[var(--ink)] bg-[var(--ink)] text-[var(--surface)]"
                   : "border-[var(--line)] text-[var(--ink-soft)]"
               }`}
             >
